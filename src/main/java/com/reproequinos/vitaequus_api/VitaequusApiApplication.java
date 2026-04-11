@@ -1,4 +1,4 @@
-package com.vitaequus.vitaequus_api;
+package com.reproequinos.vitaequus_api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

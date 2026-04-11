@@ -1,4 +1,4 @@
-package com.vitaequus.vitaequus_api;
+package com.reproequinos.vitaequus_api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
