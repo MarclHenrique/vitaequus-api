@@ -1,6 +1,6 @@
-package com.vitaequus.domain.enums;
+package com.reproequinos.vitaequus_api.entities.Enum;
 
-public enum TipoPartoEnum {
+public enum TipoParto {
     NORMAL,
     DISTOCICO,
     CESARIANA

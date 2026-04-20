@@ -1,6 +1,6 @@
-package com.vitaequus.domain.model;
+package com.reproequinos.vitaequus_api.entities;
 
-import com.vitaequus.domain.enums.TipoInsumoEnum;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoInsumo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,14 +27,14 @@ public class Insumo {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 30)
-    private TipoInsumoEnum tipo;
+    private TipoInsumo tipo;
 
     @Column(name = "principio_ativo", length = 120)
     private String principioAtivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fornecedor_id")
-    private Fornecedor fornecedor;
+    private com.reproequinos.vitaequus_api.entities.Fornecedor fornecedor;
 
     public Insumo() {}
 
@@ -44,8 +44,8 @@ public class Insumo {
     public String getNomeComercial() { return nomeComercial; }
     public void setNomeComercial(String nomeComercial) { this.nomeComercial = nomeComercial; }
 
-    public TipoInsumoEnum getTipo() { return tipo; }
-    public void setTipo(TipoInsumoEnum tipo) { this.tipo = tipo; }
+    public TipoInsumo getTipo() { return tipo; }
+    public void setTipo(TipoInsumo tipo) { this.tipo = tipo; }
 
     public String getPrincipioAtivo() { return principioAtivo; }
     public void setPrincipioAtivo(String principioAtivo) { this.principioAtivo = principioAtivo; }

@@ -1,6 +1,6 @@
-package com.vitaequus.domain.model;
+package com.reproequinos.vitaequus_api.entities;
 
-import com.vitaequus.domain.enums.TipoAtendimentoEnum;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoAtendimento;
 
 import java.time.LocalDateTime;
 
@@ -42,7 +42,7 @@ public class AtendimentoClinico {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_atendimento", nullable = false, length = 25)
-    private TipoAtendimentoEnum tipoAtendimento;
+    private TipoAtendimento tipoAtendimento;
 
     @Lob
     @Column(name = "queixa_principal", columnDefinition = "TEXT")
@@ -73,8 +73,8 @@ public class AtendimentoClinico {
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
 
-    public TipoAtendimentoEnum getTipoAtendimento() { return tipoAtendimento; }
-    public void setTipoAtendimento(TipoAtendimentoEnum tipoAtendimento) { this.tipoAtendimento = tipoAtendimento; }
+    public TipoAtendimento getTipoAtendimento() { return tipoAtendimento; }
+    public void setTipoAtendimento(TipoAtendimento tipoAtendimento) { this.tipoAtendimento = tipoAtendimento; }
 
     public String getQueixaPrincipal() { return queixaPrincipal; }
     public void setQueixaPrincipal(String queixaPrincipal) { this.queixaPrincipal = queixaPrincipal; }

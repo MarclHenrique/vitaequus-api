@@ -27,6 +27,13 @@ public class AuthService {
     }
 
     public TokenResponse cadastrar(CadastroRequest request) {
+
+        // validar senha
+        if (!request.getSenha().equals(request.getConfirmarSenha())) {
+            throw new IllegalArgumentException("Senhas não coincidem");
+        }
+
+        // verificar email
         if (veterinarioRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("E-mail já cadastrado");
         }
@@ -35,14 +42,25 @@ public class AuthService {
         veterinario.setNome(request.getNome());
         veterinario.setRegistroProfissional(request.getRegistroProfissional());
         veterinario.setTelefone(request.getTelefone());
+        veterinario.setBaseCidade(request.getCidadeBase()); // 🔥 agora incluído
         veterinario.setEmail(request.getEmail());
-        // Senha sempre criptografada antes de persistir
+
+        // criptografia
         veterinario.setPassword(passwordEncoder.encode(request.getSenha()));
 
         veterinario = veterinarioRepository.save(veterinario);
 
-        String token = jwtUtil.gerarToken(veterinario.getEmail(), veterinario.getId());
-        return new TokenResponse(token, veterinario.getId(), veterinario.getNome(), veterinario.getEmail());
+        String token = jwtUtil.gerarToken(
+                veterinario.getEmail(),
+                veterinario.getId()
+        );
+
+        return new TokenResponse(
+                token,
+                veterinario.getId(),
+                veterinario.getNome(),
+                veterinario.getEmail()
+        );
     }
 
     public TokenResponse login(LoginRequest request) {

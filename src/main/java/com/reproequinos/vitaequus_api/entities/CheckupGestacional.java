@@ -1,4 +1,4 @@
-package com.vitaequus.domain.model;
+package com.reproequinos.vitaequus_api.entities;
 
 import java.time.LocalDateTime;
 

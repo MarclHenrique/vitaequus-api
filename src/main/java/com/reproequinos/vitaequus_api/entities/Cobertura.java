@@ -1,7 +1,7 @@
-package com.vitaequus.domain.model;
+package com.reproequinos.vitaequus_api.entities;
 
-import com.vitaequus.domain.enums.TipoProcedimentoEnum;
-import com.vitaequus.domain.enums.TipoSemenEnum;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoProcedimento;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoSemen;
 
 import java.time.LocalDateTime;
 
@@ -44,11 +44,11 @@ public class Cobertura {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_procedimento", nullable = false, length = 20)
-    private TipoProcedimentoEnum tipoProcedimento;
+    private TipoProcedimento tipoProcedimento;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_semen", length = 15)
-    private TipoSemenEnum tipoSemen;
+    private TipoSemen tipoSemen;
 
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
@@ -74,11 +74,11 @@ public class Cobertura {
     public Propriedade getPropriedade() { return propriedade; }
     public void setPropriedade(Propriedade propriedade) { this.propriedade = propriedade; }
 
-    public TipoProcedimentoEnum getTipoProcedimento() { return tipoProcedimento; }
-    public void setTipoProcedimento(TipoProcedimentoEnum tipoProcedimento) { this.tipoProcedimento = tipoProcedimento; }
+    public TipoProcedimento getTipoProcedimento() { return tipoProcedimento; }
+    public void setTipoProcedimento(TipoProcedimento tipoProcedimento) { this.tipoProcedimento = tipoProcedimento; }
 
-    public TipoSemenEnum getTipoSemen() { return tipoSemen; }
-    public void setTipoSemen(TipoSemenEnum tipoSemen) { this.tipoSemen = tipoSemen; }
+    public TipoSemen getTipoSemen() { return tipoSemen; }
+    public void setTipoSemen(TipoSemen tipoSemen) { this.tipoSemen = tipoSemen; }
 
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }

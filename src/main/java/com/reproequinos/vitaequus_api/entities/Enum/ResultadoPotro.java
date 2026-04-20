@@ -1,6 +1,6 @@
-package com.vitaequus.domain.enums;
+package com.reproequinos.vitaequus_api.entities.Enum;
 
-public enum ResultadoPotroEnum {
+public enum ResultadoPotro {
     VIVO,
     MORTO,
     NATIMORTO

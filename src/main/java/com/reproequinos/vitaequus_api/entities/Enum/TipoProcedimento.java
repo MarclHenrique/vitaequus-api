@@ -1,6 +1,6 @@
-package com.vitaequus.domain.enums;
+package com.reproequinos.vitaequus_api.entities.Enum;
 
-public enum TipoProcedimentoEnum {
+public enum TipoProcedimento {
     MONTA_NATURAL,
     IA,
     TE,

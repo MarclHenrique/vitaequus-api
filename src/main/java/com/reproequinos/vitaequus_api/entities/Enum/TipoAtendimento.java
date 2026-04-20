@@ -1,6 +1,6 @@
-package com.vitaequus.domain.enums;
+package com.reproequinos.vitaequus_api.entities.Enum;
 
-public enum TipoAtendimentoEnum {
+public enum TipoAtendimento {
     CLINICO_GERAL,
     VACINACAO,
     VERMIFUGACAO,

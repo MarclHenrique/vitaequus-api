@@ -1,10 +1,11 @@
-package com.vitaequus.domain.model;
+package com.reproequinos.vitaequus_api.entities;
 
-import com.vitaequus.domain.enums.ResultadoPotroEnum;
-import com.vitaequus.domain.enums.SexoAnimalEnum;
+import com.reproequinos.vitaequus_api.entities.Enum.ResultadoPotro;
+
 
 import java.math.BigDecimal;
 
+import com.reproequinos.vitaequus_api.entities.Enum.Sexo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,14 +33,14 @@ public class PotroNascido {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sexo", nullable = false, length = 10)
-    private SexoAnimalEnum sexo;
+    private Sexo sexo;
 
     @Column(name = "peso_nascimento", precision = 10, scale = 2)
     private BigDecimal pesoNascimento;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "resultado", nullable = false, length = 15)
-    private ResultadoPotroEnum resultado;
+    private ResultadoPotro resultado;
 
     @Lob
     @Column(name = "observacoes", columnDefinition = "TEXT")
@@ -53,14 +54,14 @@ public class PotroNascido {
     public Parto getParto() { return parto; }
     public void setParto(Parto parto) { this.parto = parto; }
 
-    public SexoAnimalEnum getSexo() { return sexo; }
-    public void setSexo(SexoAnimalEnum sexo) { this.sexo = sexo; }
+    public Sexo getSexo() { return sexo; }
+    public void setSexo(Sexo sexo) { this.sexo = sexo; }
 
     public BigDecimal getPesoNascimento() { return pesoNascimento; }
     public void setPesoNascimento(BigDecimal pesoNascimento) { this.pesoNascimento = pesoNascimento; }
 
-    public ResultadoPotroEnum getResultado() { return resultado; }
-    public void setResultado(ResultadoPotroEnum resultado) { this.resultado = resultado; }
+    public ResultadoPotro getResultado() { return resultado; }
+    public void setResultado(ResultadoPotro resultado) { this.resultado = resultado; }
 
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }

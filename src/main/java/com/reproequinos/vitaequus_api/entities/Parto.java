@@ -1,7 +1,7 @@
-package com.vitaequus.domain.model;
+package com.reproequinos.vitaequus_api.entities;
 
-import com.vitaequus.domain.enums.ResultadoPartoEnum;
-import com.vitaequus.domain.enums.TipoPartoEnum;
+import com.reproequinos.vitaequus_api.entities.Enum.ResultadoParto;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoParto;
 
 import java.time.LocalDateTime;
 
@@ -47,7 +47,7 @@ public class Parto {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_parto", nullable = false, length = 15)
-    private TipoPartoEnum tipoParto;
+    private TipoParto tipoParto;
 
     @Lob
     @Column(name = "intercorrencias", columnDefinition = "TEXT")
@@ -55,7 +55,7 @@ public class Parto {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "resultado", nullable = false, length = 10)
-    private ResultadoPartoEnum resultado;
+    private ResultadoParto resultado;
 
     public Parto() {}
 
@@ -77,12 +77,12 @@ public class Parto {
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
 
-    public TipoPartoEnum getTipoParto() { return tipoParto; }
-    public void setTipoParto(TipoPartoEnum tipoParto) { this.tipoParto = tipoParto; }
+    public TipoParto getTipoParto() { return tipoParto; }
+    public void setTipoParto(TipoParto tipoParto) { this.tipoParto = tipoParto; }
 
     public String getIntercorrencias() { return intercorrencias; }
     public void setIntercorrencias(String intercorrencias) { this.intercorrencias = intercorrencias; }
 
-    public ResultadoPartoEnum getResultado() { return resultado; }
-    public void setResultado(ResultadoPartoEnum resultado) { this.resultado = resultado; }
+    public ResultadoParto getResultado() { return resultado; }
+    public void setResultado(ResultadoParto resultado) { this.resultado = resultado; }
 }
