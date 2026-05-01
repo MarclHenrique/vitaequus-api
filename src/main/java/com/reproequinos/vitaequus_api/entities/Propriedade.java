@@ -3,7 +3,9 @@ package com.reproequinos.vitaequus_api.entities;
 import com.reproequinos.vitaequus_api.entities.Enum.TipoPropriedade;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "tb01Propriedade")
@@ -36,18 +38,24 @@ public class Propriedade {
     @Column(name = "email", length = 100)
     private String email;
 
-    @OneToMany(mappedBy = "propriedade", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Animal> animais;
+    @Column(name = "ativo", nullable = false)
+    private Boolean ativo = true;
 
-    @OneToMany(mappedBy = "propriedade", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ProprietarioPropriedade> proprietarioPropriedades;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fkidVeterinario", nullable = false)
+    private Veterinario veterinario;
+
+    @OneToMany(mappedBy = "propriedade", fetch = FetchType.LAZY)
+    private List<Animal> animais = new ArrayList<>();
+
+    @OneToMany(mappedBy = "propriedade", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProprietarioPropriedade> proprietarioPropriedades = new ArrayList<>();
 
     public Propriedade() {
     }
 
     public Propriedade(Long id, String nome, TipoPropriedade tipoPropriedade, String endereco,
-                       String cidade, String estado, String celular, String email,
-                       List<Animal> animais, List<ProprietarioPropriedade> proprietarioPropriedades) {
+                       String cidade, String estado, String celular, String email, Boolean ativo) {
         this.id = id;
         this.nome = nome;
         this.tipoPropriedade = tipoPropriedade;
@@ -56,87 +64,124 @@ public class Propriedade {
         this.estado = estado;
         this.celular = celular;
         this.email = email;
-        this.animais = animais;
-        this.proprietarioPropriedades = proprietarioPropriedades;
+        this.ativo = ativo;
+    }
+
+    public void adicionarVinculo(ProprietarioPropriedade vinculo) {
+        this.proprietarioPropriedades.add(vinculo);
+        vinculo.setPropriedade(this);
+    }
+
+    public void removerVinculo(ProprietarioPropriedade vinculo) {
+        this.proprietarioPropriedades.remove(vinculo);
+        vinculo.setPropriedade(null);
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getNome() {
         return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
     }
 
     public TipoPropriedade getTipoPropriedade() {
         return tipoPropriedade;
     }
 
-    public void setTipoPropriedade(TipoPropriedade tipoPropriedade) {
-        this.tipoPropriedade = tipoPropriedade;
-    }
-
     public String getEndereco() {
         return endereco;
-    }
-
-    public void setEndereco(String endereco) {
-        this.endereco = endereco;
     }
 
     public String getCidade() {
         return cidade;
     }
 
-    public void setCidade(String cidade) {
-        this.cidade = cidade;
-    }
-
     public String getEstado() {
         return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
     }
 
     public String getCelular() {
         return celular;
     }
 
-    public void setCelular(String celular) {
-        this.celular = celular;
-    }
-
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public Boolean getAtivo() {
+        return ativo;
     }
 
     public List<Animal> getAnimais() {
         return animais;
     }
 
-    public void setAnimais(List<Animal> animais) {
-        this.animais = animais;
-    }
-
     public List<ProprietarioPropriedade> getProprietarioPropriedades() {
         return proprietarioPropriedades;
     }
 
-    public void setProprietarioPropriedades(List<ProprietarioPropriedade> v) {
-        this.proprietarioPropriedades = v;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setTipoPropriedade(TipoPropriedade tipoPropriedade) {
+        this.tipoPropriedade = tipoPropriedade;
+    }
+
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public void setCelular(String celular) {
+        this.celular = celular;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public void setAnimais(List<Animal> animais) {
+        this.animais = animais;
+    }
+
+    public void setProprietarioPropriedades(List<ProprietarioPropriedade> proprietarioPropriedades) {
+        this.proprietarioPropriedades = proprietarioPropriedades;
+    }
+
+    public Veterinario getVeterinario() {
+        return veterinario;
+    }
+
+    public void setVeterinario(Veterinario veterinario) {
+        this.veterinario = veterinario;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Propriedade that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

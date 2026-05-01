@@ -1,9 +1,17 @@
 package com.reproequinos.vitaequus_api.entities;
 
+import com.reproequinos.vitaequus_api.entities.Enum.TipoVinculo;
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
-@Table(name = "tb03Proprietario_Propriedade")
+@Table(
+        name = "tb03Proprietario_Propriedade",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_proprietario_propriedade", columnNames = {"fkidProprietario", "fkidPropriedade"})
+        }
+)
 public class ProprietarioPropriedade {
 
     @Id
@@ -19,27 +27,61 @@ public class ProprietarioPropriedade {
     @JoinColumn(name = "fkidPropriedade", nullable = false)
     private Propriedade propriedade;
 
-    @Column(name = "tipo_vinculo", length = 50)
-    private String tipoVinculo;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_vinculo", nullable = false, length = 50)
+    private TipoVinculo tipoVinculo;
 
-    public ProprietarioPropriedade() {}
+    public ProprietarioPropriedade() {
+    }
 
-    public ProprietarioPropriedade(Long id, Proprietario proprietario, Propriedade propriedade, String tipoVinculo) {
+    public ProprietarioPropriedade(Long id, Proprietario proprietario, Propriedade propriedade, TipoVinculo tipoVinculo) {
         this.id = id;
         this.proprietario = proprietario;
         this.propriedade = propriedade;
         this.tipoVinculo = tipoVinculo;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Proprietario getProprietario() { return proprietario; }
-    public void setProprietario(Proprietario proprietario) { this.proprietario = proprietario; }
+    public Proprietario getProprietario() {
+        return proprietario;
+    }
 
-    public Propriedade getPropriedade() { return propriedade; }
-    public void setPropriedade(Propriedade propriedade) { this.propriedade = propriedade; }
+    public Propriedade getPropriedade() {
+        return propriedade;
+    }
 
-    public String getTipoVinculo() { return tipoVinculo; }
-    public void setTipoVinculo(String tipoVinculo) { this.tipoVinculo = tipoVinculo; }
+    public TipoVinculo getTipoVinculo() {
+        return tipoVinculo;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setProprietario(Proprietario proprietario) {
+        this.proprietario = proprietario;
+    }
+
+    public void setPropriedade(Propriedade propriedade) {
+        this.propriedade = propriedade;
+    }
+
+    public void setTipoVinculo(TipoVinculo tipoVinculo) {
+        this.tipoVinculo = tipoVinculo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProprietarioPropriedade that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
