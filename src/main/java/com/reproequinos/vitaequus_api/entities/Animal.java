@@ -58,7 +58,7 @@ public class Animal {
     private Doadora doadora;
 
     // Referência ao Produtor (pai) — entidade do módulo Reprodução
-    @Column(name = "fktb09idProduto")
+    @Column(name = "fktb09idProdutor")
     private Long idProdutor;
 
     @Enumerated(EnumType.STRING)
@@ -67,6 +67,9 @@ public class Animal {
 
     @Column(name = "biografia", columnDefinition = "TEXT")
     private String biografia;
+
+    @Column(name = "url_foto", length = 255)
+    private String urlFoto;
 
     @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MovimentacaoAnimal> movimentacoes;
@@ -223,5 +226,13 @@ public class Animal {
 
     public void setMovimentacoes(List<MovimentacaoAnimal> movimentacoes) {
         this.movimentacoes = movimentacoes;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
     }
 }
