@@ -9,7 +9,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "tb04Animal")
+@Table(
+        name = "tb04Animal",
+        indexes = {
+                @Index(name = "idx_animal_propriedade_status", columnList = "fktb01idPropriedade, status"),
+                @Index(name = "idx_animal_propriedade_categoria", columnList = "fktb01idPropriedade, categoria")
+        }
+)
 public class Animal {
 
     @Id
@@ -42,7 +48,7 @@ public class Animal {
     private String pelagem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fktb01idPropriedade")
+    @JoinColumn(name = "fktb01idPropriedade", nullable = false)
     private Propriedade propriedade;
 
     @ManyToOne(fetch = FetchType.LAZY)

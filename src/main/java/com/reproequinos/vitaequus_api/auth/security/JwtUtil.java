@@ -20,6 +20,12 @@ public class JwtUtil {
     @Value("${jwt.expiration:28800000}")
     private long expiration;
 
+    @Value("${jwt.issuer:vitaequus-api}")
+    private String issuer;
+
+    @Value("${jwt.audience:vitaequus-clients}")
+    private String audience;
+
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
@@ -27,7 +33,10 @@ public class JwtUtil {
     public String gerarToken(String email, Long veterinarioId) {
         return Jwts.builder()
                 .subject(email)
+                .issuer(issuer)
+                .audience().add(audience).and()
                 .claim("veterinarioId", veterinarioId)
+                .claim("role", "VETERINARIO")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getKey())
@@ -54,6 +63,8 @@ public class JwtUtil {
     private Claims getClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getKey())
+                .requireIssuer(issuer)
+                .requireAudience(audience)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

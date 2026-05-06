@@ -8,17 +8,21 @@ import com.reproequinos.vitaequus_api.entities.*;
 import com.reproequinos.vitaequus_api.entities.Enum.Categoria;
 import com.reproequinos.vitaequus_api.entities.Enum.Sexo;
 import com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
+import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.*;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -32,6 +36,9 @@ public class AnimalService {
     private final CuidadorPropriedadeRepository cuidadorRepository;
     private final MovimentacaoAnimalRepository movimentacaoRepository;
     private final AuthService authService;
+
+    @Value("${app.upload.animais-dir:uploads/animais}")
+    private String animaisUploadDir;
 
     public AnimalService(
             AnimalRepository animalRepository,
@@ -91,7 +98,7 @@ public class AnimalService {
 
         Propriedade prop = propriedadeRepository
                 .findByIdAndAtivoTrueAndVeterinarioId(dto.propriedadeId(), veterinarioId)
-                .orElseThrow(() -> new RuntimeException("Propriedade não encontrada ou sem acesso"));
+                .orElseThrow(() -> new NotFoundException("Propriedade não encontrada ou sem acesso"));
 
         validarCategoriaSexo(dto.categoria(), dto.sexo());
 
@@ -109,23 +116,25 @@ public class AnimalService {
 
         // 🔹 RAÇA (você já tem, mas mantendo aqui organizado)
         if (dto.racaId() != null) {
-            Raca raca = racaRepository.findById(dto.racaId())
-                    .orElseThrow(() -> new RuntimeException("Raça não encontrada"));
+            Raca raca = racaRepository.findByIdAndStatus(dto.racaId(), 0)
+                    .orElseThrow(() -> new NotFoundException("Raça não encontrada"));
             animal.setRaca(raca);
         }
 
 // 🔹 PROPRIETÁRIO
         if (dto.proprietarioId() != null) {
-            Proprietario proprietario = proprietarioRepository.findById(dto.proprietarioId())
-                    .orElseThrow(() -> new RuntimeException("Proprietário não encontrado"));
+            Proprietario proprietario = proprietarioRepository
+                    .findByIdAndVeterinarioId(dto.proprietarioId(), veterinarioId)
+                    .orElseThrow(() -> new NotFoundException("Proprietário não encontrado"));
 
             animal.setProprietario(proprietario);
         }
 
 // 🔹 CUIDADOR
         if (dto.cuidadorPropriedadeId() != null) {
-            CuidadorPropriedade cuidador = cuidadorRepository.findById(dto.cuidadorPropriedadeId())
-                    .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));
+            CuidadorPropriedade cuidador = cuidadorRepository
+                    .findByIdAndPropriedadeVeterinarioId(dto.cuidadorPropriedadeId(), veterinarioId)
+                    .orElseThrow(() -> new NotFoundException("Cuidador não encontrado"));
 
             animal.setCuidadorPropriedade(cuidador);
         }
@@ -162,26 +171,32 @@ public class AnimalService {
         }
 
         if (dto.propriedadeId() != null) {
-            Propriedade propriedade = propriedadeRepository.findById(dto.propriedadeId())
-                    .orElseThrow(() -> new RuntimeException("Propriedade não encontrada"));
+            Long veterinarioId = authService.getVeterinarioLogadoId();
+            Propriedade propriedade = propriedadeRepository
+                    .findByIdAndAtivoTrueAndVeterinarioId(dto.propriedadeId(), veterinarioId)
+                    .orElseThrow(() -> new NotFoundException("Propriedade não encontrada"));
             animal.setPropriedade(propriedade);
         }
 
         if (dto.racaId() != null) {
-            Raca raca = racaRepository.findById(dto.racaId())
-                    .orElseThrow(() -> new RuntimeException("Raça não encontrada"));
+            Raca raca = racaRepository.findByIdAndStatus(dto.racaId(), 0)
+                    .orElseThrow(() -> new NotFoundException("Raça não encontrada"));
             animal.setRaca(raca);
         }
 
         if (dto.proprietarioId() != null) {
-            Proprietario proprietario = proprietarioRepository.findById(dto.proprietarioId())
-                    .orElseThrow(() -> new RuntimeException("Proprietário não encontrado"));
+            Long veterinarioId = authService.getVeterinarioLogadoId();
+            Proprietario proprietario = proprietarioRepository
+                    .findByIdAndVeterinarioId(dto.proprietarioId(), veterinarioId)
+                    .orElseThrow(() -> new NotFoundException("Proprietário não encontrado"));
             animal.setProprietario(proprietario);
         }
 
         if (dto.cuidadorPropriedadeId() != null) {
-            CuidadorPropriedade cuidador = cuidadorRepository.findById(dto.cuidadorPropriedadeId())
-                    .orElseThrow(() -> new RuntimeException("Cuidador da propriedade não encontrado"));
+            Long veterinarioId = authService.getVeterinarioLogadoId();
+            CuidadorPropriedade cuidador = cuidadorRepository
+                    .findByIdAndPropriedadeVeterinarioId(dto.cuidadorPropriedadeId(), veterinarioId)
+                    .orElseThrow(() -> new NotFoundException("Cuidador da propriedade não encontrado"));
             animal.setCuidadorPropriedade(cuidador);
         }
 
@@ -192,14 +207,29 @@ public class AnimalService {
     public FotoResponseDTO uploadFoto(Long id, MultipartFile file) {
         Animal animal = buscarAnimal(id);
 
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("Arquivo de imagem é obrigatório");
+        }
+
+        String extensao = extrairExtensao(file.getOriginalFilename());
+        if (!Set.of("jpg", "jpeg", "png", "webp").contains(extensao)) {
+            throw new BadRequestException("Formato de imagem inválido");
+        }
+
         try {
-            String pasta = "uploads/animais/";
-            new File(pasta).mkdirs();
+            Path pasta = Paths.get(animaisUploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(pasta);
 
-            String nome = "animal_" + id + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(pasta + nome);
+            String nome = "animal_" + id + "_" + UUID.randomUUID() + "." + extensao;
+            Path path = pasta.resolve(nome).normalize();
 
-            Files.write(path, file.getBytes());
+            if (!path.startsWith(pasta)) {
+                throw new BadRequestException("Nome de arquivo inválido");
+            }
+
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+            }
 
             String url = "/uploads/animais/" + nome;
 
@@ -208,8 +238,26 @@ public class AnimalService {
             return new FotoResponseDTO(url);
 
         } catch (Exception e) {
-            throw new RuntimeException("Erro upload");
+            if (e instanceof BadRequestException badRequestException) {
+                throw badRequestException;
+            }
+            throw new BadRequestException("Erro ao salvar imagem");
         }
+    }
+
+    private String extrairExtensao(String nomeArquivo) {
+        if (nomeArquivo == null || nomeArquivo.isBlank()) {
+            throw new BadRequestException("Nome de arquivo inválido");
+        }
+
+        String nomeNormalizado = Paths.get(nomeArquivo).getFileName().toString();
+        int index = nomeNormalizado.lastIndexOf('.');
+
+        if (index < 0 || index == nomeNormalizado.length() - 1) {
+            throw new BadRequestException("Arquivo sem extensão");
+        }
+
+        return nomeNormalizado.substring(index + 1).toLowerCase(Locale.ROOT);
     }
 
     @Transactional
@@ -256,8 +304,11 @@ public class AnimalService {
 
         Animal animal = buscarAnimal(animalId);
 
-        Propriedade novaPropriedade = propriedadeRepository.findById(dto.propriedadeId())
-                .orElseThrow(() -> new RuntimeException("Propriedade não encontrada"));
+        Long veterinarioId = authService.getVeterinarioLogadoId();
+
+        Propriedade novaPropriedade = propriedadeRepository
+                .findByIdAndAtivoTrueAndVeterinarioId(dto.propriedadeId(), veterinarioId)
+                .orElseThrow(() -> new NotFoundException("Propriedade não encontrada"));
 
         animal.setPropriedade(novaPropriedade);
 
@@ -290,7 +341,7 @@ public class AnimalService {
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
         return animalRepository.findByIdAndPropriedadeVeterinarioId(id, veterinarioId)
-                .orElseThrow(() -> new RuntimeException("Animal não encontrado ou sem acesso"));
+                .orElseThrow(() -> new NotFoundException("Animal não encontrado ou sem acesso"));
     }
 
     public AnimalResponseDTO buscarPorId(Long id) {
@@ -301,7 +352,7 @@ public class AnimalService {
 
     private void validarCategoriaSexo(Categoria categoria, Sexo sexo) {
         if (categoria == Categoria.Garanhao && sexo != Sexo.M) {
-            throw new RuntimeException("Garanhão deve ser macho");
+            throw new BadRequestException("Garanhão deve ser macho");
         }
     }
 
@@ -318,8 +369,8 @@ public class AnimalService {
                 a.getPelagem(),
                 a.getPropriedade().getId(),
                 a.getPropriedade().getNome(),
-                null,
-                null,
+                a.getProprietario() != null ? a.getProprietario().getId() : null,
+                a.getProprietario() != null ? a.getProprietario().getNome() : null,
                 a.getStatus(),
                 a.getBiografia(),
                 a.getUrlFoto()

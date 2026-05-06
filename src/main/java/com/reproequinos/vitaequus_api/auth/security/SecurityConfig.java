@@ -2,6 +2,9 @@ package com.reproequinos.vitaequus_api.auth.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,15 +21,21 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final Environment environment;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:8080}")
+    private String allowedOrigins;
+
+    public SecurityConfig(JwtFilter jwtFilter, Environment environment) {
         this.jwtFilter = jwtFilter;
+        this.environment = environment;
     }
 
     @Bean
@@ -39,11 +48,15 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/error", "/error/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/v2/api/docs/**",
+                .authorizeHttpRequests(auth -> {
+                    auth
+                            .requestMatchers("/auth/**").permitAll()
+                            .requestMatchers("/error", "/error/**").permitAll();
+
+                    if (environment.acceptsProfiles(Profiles.of("dev"))) {
+                        auth.requestMatchers(
+                                "/h2-console/**",
+                                "/v2/api/docs/**",
                                 "/v3/api/docs/**",
                                 "/swagger-resources/**",
                                 "/swagger-ui.html",
@@ -51,9 +64,12 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/v3/api-docs/swagger-config",
                                 "/v3/api-docs/**",
-                                "/openapi.yaml/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                                "/openapi.yaml/**"
+                        ).permitAll();
+                    }
+
+                    auth.anyRequest().hasRole("VETERINARIO");
+                })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -73,8 +89,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList());
+        config.setAllowedMethods(List.of( "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

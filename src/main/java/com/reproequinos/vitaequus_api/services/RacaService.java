@@ -4,6 +4,8 @@ import com.reproequinos.vitaequus_api.Dto.Request.RacaRequestDTO;
 import com.reproequinos.vitaequus_api.Dto.Request.StatusRacaRequestDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.RacaResponseDTO;
 import com.reproequinos.vitaequus_api.entities.Raca;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
+import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.RacaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,7 @@ public class RacaService {
     public RacaResponseDTO criar(RacaRequestDTO dto) {
 
         if (repository.existsByNomeIgnoreCase(dto.nome())) {
-            throw new RuntimeException("Raça já cadastrada");
+            throw new BadRequestException("Raça já cadastrada");
         }
 
         Raca raca = new Raca();
@@ -54,7 +56,7 @@ public class RacaService {
     public RacaResponseDTO atualizarStatus(Long id, Integer status) {
 
         if (status != 0 && status != 1) {
-            throw new RuntimeException("Status inválido");
+            throw new BadRequestException("Status inválido");
         }
 
         Raca raca = buscar(id);
@@ -66,7 +68,7 @@ public class RacaService {
 
     private Raca buscar(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Raça não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Raça não encontrada"));
     }
 
     private RacaResponseDTO toResponse(Raca r) {

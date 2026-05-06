@@ -38,6 +38,17 @@ public class ProprietarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(proprietarioService.criar(dto));
     }
 
+    @PatchMapping("/{id}/propriedades/{idProp}/tipo-vinculo")
+    public ResponseEntity<VinculoResponseDTO> atualizarTipoVinculo(
+            @PathVariable Long id,
+            @PathVariable Long idProp,
+            @RequestBody VincularPropriedadeRequestDTO dto
+    ) {
+        return ResponseEntity.ok(
+                proprietarioService.atualizarTipoVinculo(id, idProp, dto)
+        );
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ProprietarioResponseDTO> atualizar(@PathVariable Long id,
                                                              @Valid @RequestBody ProprietarioRequestDTO dto) {

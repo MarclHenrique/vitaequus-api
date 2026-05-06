@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb02Proprietario")
+@Table(
+        name = "tb02Proprietario",
+        indexes = {
+                @Index(name = "idx_proprietario_veterinario", columnList = "fkidVeterinario")
+        }
+)
 public class Proprietario {
 
     @Id
@@ -31,6 +36,10 @@ public class Proprietario {
 
     @Column(name = "email", length = 100)
     private String email;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fkidVeterinario", nullable = false)
+    private Veterinario veterinario;
 
     @OneToMany(mappedBy = "proprietario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProprietarioPropriedade> proprietarioPropriedades = new ArrayList<>();
@@ -93,6 +102,10 @@ public class Proprietario {
         return animais;
     }
 
+    public Veterinario getVeterinario() {
+        return veterinario;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -115,6 +128,10 @@ public class Proprietario {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setVeterinario(Veterinario veterinario) {
+        this.veterinario = veterinario;
     }
 
     public void setProprietarioPropriedades(List<ProprietarioPropriedade> proprietarioPropriedades) {

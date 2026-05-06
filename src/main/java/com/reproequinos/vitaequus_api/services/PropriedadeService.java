@@ -10,6 +10,8 @@ import com.reproequinos.vitaequus_api.entities.Propriedade;
 import com.reproequinos.vitaequus_api.entities.Proprietario;
 import com.reproequinos.vitaequus_api.entities.ProprietarioPropriedade;
 import com.reproequinos.vitaequus_api.entities.Veterinario;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
+import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioPropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioRepository;
@@ -57,9 +59,10 @@ public class PropriedadeService {
     @Transactional
     public PropriedadeResponseDTO criar(PropriedadeRequestDTO dto) {
         Veterinario veterinario = authService.getVeterinarioLogado();
+        Long veterinarioId = veterinario.getId();
 
-        Proprietario proprietario = proprietarioRepository.findById(dto.getProprietarioId())
-                .orElseThrow(() -> new IllegalArgumentException("Proprietário não encontrado"));
+        Proprietario proprietario = proprietarioRepository.findByIdAndVeterinarioId(dto.getProprietarioId(), veterinarioId)
+                .orElseThrow(() -> new NotFoundException("Proprietário não encontrado"));
 
         Propriedade propriedade = new Propriedade();
         propriedade.setNome(dto.getNome());
@@ -137,7 +140,7 @@ public class PropriedadeService {
 
         buscarEntidadeAtivaPorId(id, veterinarioId);
 
-        return proprietarioPropriedadeRepository.findByPropriedadeId(id)
+        return proprietarioPropriedadeRepository.findByPropriedadeIdAndPropriedadeVeterinarioId(id, veterinarioId)
                 .stream()
                 .map(ProprietarioPropriedade::getProprietario)
                 .map(this::toProprietarioResumoDTO)
@@ -146,7 +149,7 @@ public class PropriedadeService {
 
     private Propriedade buscarEntidadeAtivaPorId(Long id, Long veterinarioId) {
         return propriedadeRepository.findByIdAndAtivoTrueAndVeterinarioId(id, veterinarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Propriedade não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Propriedade não encontrada"));
     }
 
     private PropriedadeResponseDTO toResponseDTO(Propriedade entity) {

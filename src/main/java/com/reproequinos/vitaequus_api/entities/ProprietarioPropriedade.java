@@ -8,6 +8,9 @@ import java.util.Objects;
 @Entity
 @Table(
         name = "tb03Proprietario_Propriedade",
+        indexes = {
+                @Index(name = "idx_pp_proprietario_propriedade", columnList = "fkidProprietario, fkidPropriedade")
+        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_proprietario_propriedade", columnNames = {"fkidProprietario", "fkidPropriedade"})
         }

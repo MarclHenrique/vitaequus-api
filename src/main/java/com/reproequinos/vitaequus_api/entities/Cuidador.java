@@ -5,7 +5,15 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "tb21Cuidador")
+@Table(
+        name = "tb21Cuidador",
+        indexes = {
+                @Index(name = "idx_cuidador_veterinario", columnList = "fkidVeterinario")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_cuidador_documento", columnNames = "nrdocumento")
+        }
+)
 public class Cuidador {
 
     @Id
@@ -20,7 +28,7 @@ public class Cuidador {
     @Column(name = "tipo_documento", nullable = false)
     private TipoDocumento tipoDocumento;
 
-    @Column(name = "nrdocumento", nullable = false, length = 20)
+    @Column(name = "nrdocumento", nullable = false, length = 20, unique = true)
     private String nrDocumento;
 
     @Column(name = "telefone", length = 20)
@@ -28,6 +36,10 @@ public class Cuidador {
 
     @Column(name = "email", length = 100)
     private String email;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fkidVeterinario", nullable = false)
+    private Veterinario veterinario;
 
     @OneToMany(mappedBy = "cuidador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CuidadorPropriedade> propriedades;
@@ -62,6 +74,9 @@ public class Cuidador {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public Veterinario getVeterinario() { return veterinario; }
+    public void setVeterinario(Veterinario veterinario) { this.veterinario = veterinario; }
 
     public List<CuidadorPropriedade> getPropriedades() { return propriedades; }
     public void setPropriedades(List<CuidadorPropriedade> propriedades) { this.propriedades = propriedades; }

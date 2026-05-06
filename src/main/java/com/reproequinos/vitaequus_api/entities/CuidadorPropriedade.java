@@ -3,7 +3,15 @@ package com.reproequinos.vitaequus_api.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "tb22CuidadorPropriedade")
+@Table(
+        name = "tb22CuidadorPropriedade",
+        indexes = {
+                @Index(name = "idx_cp_cuidador_propriedade", columnList = "fktb21idCuidador, fktb01idPropriedade")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_cuidador_propriedade", columnNames = {"fktb21idCuidador", "fktb01idPropriedade"})
+        }
+)
 public class CuidadorPropriedade {
 
     @Id

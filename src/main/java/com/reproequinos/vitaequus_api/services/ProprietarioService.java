@@ -9,6 +9,9 @@ import com.reproequinos.vitaequus_api.entities.Propriedade;
 import com.reproequinos.vitaequus_api.entities.Proprietario;
 import com.reproequinos.vitaequus_api.entities.ProprietarioPropriedade;
 import com.reproequinos.vitaequus_api.auth.AuthService;
+import com.reproequinos.vitaequus_api.entities.Veterinario;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
+import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioPropriedadeRepository;
@@ -42,16 +45,8 @@ public class ProprietarioService {
 
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return proprietarioPropriedadeRepository.findAll()
+        return proprietarioRepository.findDistinctByVeterinarioId(veterinarioId)
                 .stream()
-                .map(ProprietarioPropriedade::getProprietario)
-                .distinct()
-                .filter(p -> p.getProprietarioPropriedades()
-                        .stream()
-                        .anyMatch(v ->
-                                v.getPropriedade().getVeterinario().getId().equals(veterinarioId)
-                        )
-                )
                 .map(this::toResponseDTO)
                 .toList();
     }
@@ -65,8 +60,10 @@ public class ProprietarioService {
     @Transactional
     public ProprietarioResponseDTO criar(ProprietarioRequestDTO dto) {
         if (proprietarioRepository.existsByNrDocumento(dto.getNrDocumento())) {
-            throw new IllegalArgumentException("Já existe proprietário com este número de documento");
+            throw new BadRequestException("Já existe proprietário com este número de documento");
         }
+
+        Veterinario veterinario = authService.getVeterinarioLogado();
 
         Proprietario proprietario = new Proprietario();
         proprietario.setNome(dto.getNome());
@@ -74,6 +71,7 @@ public class ProprietarioService {
         proprietario.setNrDocumento(dto.getNrDocumento());
         proprietario.setTelefone(dto.getTelefone());
         proprietario.setEmail(dto.getEmail());
+        proprietario.setVeterinario(veterinario);
 
         Proprietario salvo = proprietarioRepository.save(proprietario);
         return toResponseDTO(salvo);
@@ -84,7 +82,7 @@ public class ProprietarioService {
         Proprietario proprietario = buscarEntidadePorId(id);
 
         if (proprietarioRepository.existsByNrDocumentoAndIdNot(dto.getNrDocumento(), id)) {
-            throw new IllegalArgumentException("Já existe outro proprietário com este número de documento");
+            throw new BadRequestException("Já existe outro proprietário com este número de documento");
         }
 
         proprietario.setNome(dto.getNome());
@@ -100,19 +98,21 @@ public class ProprietarioService {
     @Transactional
     public VinculoResponseDTO vincularPropriedade(Long proprietarioId, VincularPropriedadeRequestDTO dto) {
         Proprietario proprietario = buscarEntidadePorId(proprietarioId);
+        Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        Propriedade propriedade = propriedadeRepository.findById(dto.getIdPropriedade())
-                .orElseThrow(() -> new IllegalArgumentException("Propriedade não encontrada"));
+        Propriedade propriedade = propriedadeRepository
+                .findByIdAndAtivoTrueAndVeterinarioId(dto.getIdPropriedade(), veterinarioId)
+                .orElseThrow(() -> new NotFoundException("Propriedade não encontrada"));
 
         if (Boolean.FALSE.equals(propriedade.getAtivo())) {
-            throw new IllegalArgumentException("Propriedade não encontrada");
+            throw new NotFoundException("Propriedade não encontrada");
         }
 
         boolean existe = proprietarioPropriedadeRepository
-                .existsByProprietarioIdAndPropriedadeId(proprietarioId, dto.getIdPropriedade());
+                .existsByProprietarioAndPropriedadeAndVeterinario(proprietarioId, dto.getIdPropriedade(), veterinarioId);
 
         if (existe) {
-            throw new IllegalArgumentException("Este proprietário já está vinculado a esta propriedade");
+            throw new BadRequestException("Este proprietário já está vinculado a esta propriedade");
         }
 
         ProprietarioPropriedade vinculo = new ProprietarioPropriedade();
@@ -125,12 +125,38 @@ public class ProprietarioService {
     }
 
     @Transactional
+    public VinculoResponseDTO atualizarTipoVinculo(
+            Long proprietarioId,
+            Long propriedadeId,
+            VincularPropriedadeRequestDTO dto
+    ) {
+
+        Long veterinarioId = authService.getVeterinarioLogadoId();
+
+        ProprietarioPropriedade vinculo = proprietarioPropriedadeRepository
+                .findByProprietarioIdAndPropriedadeIdAndPropriedadeVeterinarioId(
+                        proprietarioId,
+                        propriedadeId,
+                        veterinarioId
+                )
+                .orElseThrow(() -> new NotFoundException("Vínculo não encontrado"));
+
+        vinculo.setTipoVinculo(dto.getTipoVinculo());
+
+        ProprietarioPropriedade atualizado =
+                proprietarioPropriedadeRepository.save(vinculo);
+
+        return toVinculoResponseDTO(atualizado);
+    }
+
+    @Transactional
     public void removerVinculo(Long proprietarioId, Long propriedadeId) {
+        Long veterinarioId = authService.getVeterinarioLogadoId();
         buscarEntidadePorId(proprietarioId);
 
         ProprietarioPropriedade vinculo = proprietarioPropriedadeRepository
-                .findByProprietarioIdAndPropriedadeId(proprietarioId, propriedadeId)
-                .orElseThrow(() -> new IllegalArgumentException("Vínculo não encontrado"));
+                .findByProprietarioIdAndPropriedadeIdAndPropriedadeVeterinarioId(proprietarioId, propriedadeId, veterinarioId)
+                .orElseThrow(() -> new NotFoundException("Vínculo não encontrado"));
 
         proprietarioPropriedadeRepository.delete(vinculo);
     }
@@ -141,7 +167,7 @@ public class ProprietarioService {
 
         buscarEntidadePorId(proprietarioId);
 
-        return proprietarioPropriedadeRepository.findByProprietarioId(proprietarioId)
+        return proprietarioPropriedadeRepository.findByProprietarioIdAndPropriedadeVeterinarioId(proprietarioId, veterinarioId)
                 .stream()
                 .map(ProprietarioPropriedade::getPropriedade)
                 .filter(propriedade -> Boolean.TRUE.equals(propriedade.getAtivo()))
@@ -152,27 +178,29 @@ public class ProprietarioService {
 
     @Transactional
     public void deletar(Long id) {
-        Proprietario proprietario = proprietarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Proprietário não encontrado"));
+        Long veterinarioId = authService.getVeterinarioLogadoId();
+        Proprietario proprietario = buscarEntidadePorId(id);
 
         if (proprietarioPropriedadeRepository
-                .existsByProprietarioIdAndPropriedade_AtivoTrue(id)) {
+                .existsByProprietarioIdAndPropriedade_AtivoTrueAndPropriedadeVeterinarioId(id, veterinarioId)) {
 
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Não é possível excluir o proprietário pois ele possui propriedades ativas vinculadas"
             );
         }
 
         if (proprietario.getAnimais() != null && !proprietario.getAnimais().isEmpty()) {
-            throw new IllegalArgumentException("Não é possível excluir o proprietário pois ele possui animais vinculados");
+            throw new BadRequestException("Não é possível excluir o proprietário pois ele possui animais vinculados");
         }
 
         proprietarioRepository.delete(proprietario);
     }
 
     private Proprietario buscarEntidadePorId(Long id) {
+        Long veterinarioId = authService.getVeterinarioLogadoId();
         return proprietarioRepository.findById(id)
-                .orElseThrow(() ->  new IllegalArgumentException("Proprietário não encontrado"));
+                .flatMap(proprietario -> proprietarioRepository.findByIdAndVeterinarioId(proprietario.getId(), veterinarioId))
+                .orElseThrow(() -> new NotFoundException("Proprietário não encontrado"));
     }
 
     private ProprietarioResponseDTO toResponseDTO(Proprietario entity) {

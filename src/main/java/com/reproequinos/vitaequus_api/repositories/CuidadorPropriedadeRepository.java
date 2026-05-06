@@ -12,7 +12,11 @@ public interface CuidadorPropriedadeRepository extends JpaRepository<CuidadorPro
 
     Optional<CuidadorPropriedade> findByCuidadorIdAndPropriedadeId(Long cuidadorId, Long propriedadeId);
 
+    Optional<CuidadorPropriedade> findByIdAndPropriedadeVeterinarioId(Long id, Long veterinarioId);
+
     List<CuidadorPropriedade> findByCuidadorId(Long cuidadorId);
+
+    List<CuidadorPropriedade> findByCuidadorIdAndPropriedadeVeterinarioId(Long cuidadorId, Long veterinarioId);
 
     List<CuidadorPropriedade> findByPropriedadeId(Long propriedadeId);
 

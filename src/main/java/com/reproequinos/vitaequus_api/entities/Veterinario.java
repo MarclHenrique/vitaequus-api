@@ -4,7 +4,15 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "tb06Veterinario")
+@Table(
+        name = "tb06Veterinario",
+        indexes = {
+                @Index(name = "idx_veterinario_email", columnList = "email")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_veterinario_email", columnNames = "email")
+        }
+)
 public class Veterinario {
 
     @Id
@@ -21,7 +29,7 @@ public class Veterinario {
     @Column(name = "telefone", length = 20)
     private String telefone;
 
-    @Column(name = "email", length = 100)
+    @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
     @Column(name = "base_cidade", length = 80)
@@ -29,6 +37,9 @@ public class Veterinario {
 
     @Column(name = "senha", nullable = false)
     private String password;
+
+    @Column(name = "role", nullable = false, length = 30)
+    private String role = "VETERINARIO";
 
     @OneToMany(mappedBy = "veterinario", fetch = FetchType.LAZY)
     private List<RotaVeterinario> rotas;
@@ -44,6 +55,7 @@ public class Veterinario {
         this.email = email;
         this.baseCidade = baseCidade;
         this.password = password;
+        this.role = "VETERINARIO";
         this.rotas = rotas;
     }
 
@@ -67,6 +79,9 @@ public class Veterinario {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     public List<RotaVeterinario> getRotas() { return rotas; }
     public void setRotas(List<RotaVeterinario> rotas) { this.rotas = rotas; }

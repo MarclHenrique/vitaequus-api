@@ -10,6 +10,8 @@ import com.reproequinos.vitaequus_api.auth.AuthService;
 import com.reproequinos.vitaequus_api.entities.Cuidador;
 import com.reproequinos.vitaequus_api.entities.CuidadorPropriedade;
 import com.reproequinos.vitaequus_api.entities.Propriedade;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
+import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.CuidadorPropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.CuidadorRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
@@ -41,10 +43,8 @@ public class CuidadorService {
     public List<CuidadorResponseDTO> listar() {
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return cuidadorPropriedadeRepository.findByPropriedadeVeterinarioId(veterinarioId)
+        return cuidadorRepository.findDistinctByVeterinarioId(veterinarioId)
                 .stream()
-                .map(CuidadorPropriedade::getCuidador)
-                .distinct()
                 .map(this::toCuidadorResponse)
                 .toList();
     }
@@ -52,7 +52,7 @@ public class CuidadorService {
     @Transactional
     public CuidadorResponseDTO criar(CuidadorRequestDTO dto) {
         if (cuidadorRepository.existsByNrDocumento(dto.nrDocumento())) {
-            throw new RuntimeException("Já existe cuidador com esse documento");
+            throw new BadRequestException("Já existe cuidador com esse documento");
         }
 
         Cuidador cuidador = new Cuidador();
@@ -61,6 +61,7 @@ public class CuidadorService {
         cuidador.setNrDocumento(dto.nrDocumento());
         cuidador.setTelefone(dto.telefone());
         cuidador.setEmail(dto.email());
+        cuidador.setVeterinario(authService.getVeterinarioLogado());
 
         return toCuidadorResponse(cuidadorRepository.save(cuidador));
     }
@@ -89,10 +90,10 @@ public class CuidadorService {
 
         Propriedade propriedade = propriedadeRepository
                 .findByIdAndAtivoTrueAndVeterinarioId(dto.propriedadeId(), veterinarioId)
-                .orElseThrow(() -> new RuntimeException("Propriedade não encontrada ou sem acesso"));
+                .orElseThrow(() -> new NotFoundException("Propriedade não encontrada ou sem acesso"));
 
         if (cuidadorPropriedadeRepository.existsByCuidadorIdAndPropriedadeId(cuidadorId, dto.propriedadeId())) {
-            throw new RuntimeException("Cuidador já vinculado a esta propriedade");
+            throw new BadRequestException("Cuidador já vinculado a esta propriedade");
         }
 
         CuidadorPropriedade vinculo = new CuidadorPropriedade();
@@ -110,7 +111,7 @@ public class CuidadorService {
             StatusVinculoRequestDTO dto
     ) {
         if (dto.status() != 0 && dto.status() != 1) {
-            throw new RuntimeException("Status inválido. Use 0 para ativo ou 1 para inativo");
+            throw new BadRequestException("Status inválido. Use 0 para ativo ou 1 para inativo");
         }
 
         CuidadorPropriedade vinculo = cuidadorPropriedadeRepository
@@ -119,7 +120,7 @@ public class CuidadorService {
                         propriedadeId,
                         authService.getVeterinarioLogadoId()
                 )
-                .orElseThrow(() -> new RuntimeException("Vínculo não encontrado ou sem acesso"));
+                .orElseThrow(() -> new NotFoundException("Vínculo não encontrado ou sem acesso"));
 
         vinculo.setStatus(dto.status());
 
@@ -129,7 +130,9 @@ public class CuidadorService {
     public List<PropriedadeResponseDTO> listarPropriedadesDoCuidador(Long cuidadorId) {
         buscarCuidador(cuidadorId);
 
-        return cuidadorPropriedadeRepository.findByCuidadorId(cuidadorId)
+        Long veterinarioId = authService.getVeterinarioLogadoId();
+
+        return cuidadorPropriedadeRepository.findByCuidadorIdAndPropriedadeVeterinarioId(cuidadorId, veterinarioId)
                 .stream()
                 .map(CuidadorPropriedade::getPropriedade)
                 .map(this::toPropriedadeResponse)
@@ -137,8 +140,10 @@ public class CuidadorService {
     }
 
     private Cuidador buscarCuidador(Long id) {
-        return cuidadorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));
+        Long veterinarioId = authService.getVeterinarioLogadoId();
+
+        return cuidadorRepository.findByIdAndVeterinarioId(id, veterinarioId)
+                .orElseThrow(() -> new NotFoundException("Cuidador não encontrado"));
     }
 
     private CuidadorResponseDTO toCuidadorResponse(Cuidador c) {

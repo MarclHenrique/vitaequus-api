@@ -5,6 +5,7 @@ import com.reproequinos.vitaequus_api.auth.dtos.LoginRequest;
 import com.reproequinos.vitaequus_api.auth.dtos.TokenResponse;
 import com.reproequinos.vitaequus_api.auth.security.JwtUtil;
 import com.reproequinos.vitaequus_api.entities.Veterinario;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.repositories.VeterinarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -32,12 +33,12 @@ public class AuthService {
 
         // validar senha
         if (!request.getSenha().equals(request.getConfirmarSenha())) {
-            throw new IllegalArgumentException("Senhas não coincidem");
+            throw new BadRequestException("Senhas não coincidem");
         }
 
         // verificar email
         if (veterinarioRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("E-mail já cadastrado");
+            throw new BadRequestException("E-mail já cadastrado");
         }
 
         Veterinario veterinario = new Veterinario();
@@ -46,6 +47,7 @@ public class AuthService {
         veterinario.setTelefone(request.getTelefone());
         veterinario.setBaseCidade(request.getCidadeBase()); // 🔥 agora incluído
         veterinario.setEmail(request.getEmail());
+        veterinario.setRole("VETERINARIO");
 
         // criptografia
         veterinario.setPassword(passwordEncoder.encode(request.getSenha()));
