@@ -10,17 +10,25 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "insumo")
+@Table(
+        name = "tb18Insumo",
+        indexes = {
+                @Index(name = "idx_insumo_veterinario", columnList = "fkidVeterinario"),
+                @Index(name = "idx_insumo_fornecedor_veterinario", columnList = "fkidFornecedor, fkidVeterinario")
+        }
+)
 public class Insumo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "idInsumo")
+    private Long id;
 
     @Column(name = "nome_comercial", nullable = false, length = 120)
     private String nomeComercial;
@@ -33,13 +41,17 @@ public class Insumo {
     private String principioAtivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fornecedor_id")
-    private com.reproequinos.vitaequus_api.entities.Fornecedor fornecedor;
+    @JoinColumn(name = "fkidFornecedor", nullable = false)
+    private Fornecedor fornecedor;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "fkidVeterinario", nullable = false)
+    private Veterinario veterinario;
 
     public Insumo() {}
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getNomeComercial() { return nomeComercial; }
     public void setNomeComercial(String nomeComercial) { this.nomeComercial = nomeComercial; }
@@ -52,4 +64,7 @@ public class Insumo {
 
     public Fornecedor getFornecedor() { return fornecedor; }
     public void setFornecedor(Fornecedor fornecedor) { this.fornecedor = fornecedor; }
+
+    public Veterinario getVeterinario() { return veterinario; }
+    public void setVeterinario(Veterinario veterinario) { this.veterinario = veterinario; }
 }
