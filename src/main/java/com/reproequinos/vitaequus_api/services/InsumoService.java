@@ -7,6 +7,7 @@ import com.reproequinos.vitaequus_api.entities.Enum.TipoInsumo;
 import com.reproequinos.vitaequus_api.entities.Fornecedor;
 import com.reproequinos.vitaequus_api.entities.Insumo;
 import com.reproequinos.vitaequus_api.entities.Veterinario;
+import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.FornecedorRepository;
 import com.reproequinos.vitaequus_api.repositories.InsumoRepository;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Service
 public class InsumoService {
@@ -33,10 +36,20 @@ public class InsumoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<InsumoResponseDTO> listar(TipoInsumo tipo, Long fornecedorId, Pageable pageable) {
+    public Page<InsumoResponseDTO> listar(
+            TipoInsumo tipo,
+            Long fornecedorId,
+            Boolean estoqueBaixo,
+            LocalDate vencendoAte,
+            Pageable pageable
+    ) {
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return insumoRepository.findByFiltros(veterinarioId, tipo, fornecedorId, pageable)
+        if (fornecedorId != null) {
+            buscarFornecedorDoVeterinario(fornecedorId, veterinarioId);
+        }
+
+        return insumoRepository.findByFiltros(veterinarioId, tipo, fornecedorId, estoqueBaixo, vencendoAte, pageable)
                 .map(this::toResponse);
     }
 
@@ -47,14 +60,14 @@ public class InsumoService {
 
     @Transactional
     public InsumoResponseDTO criar(InsumoRequestDTO dto) {
+        validarEstoques(dto);
+
         Long veterinarioId = authService.getVeterinarioLogadoId();
         Veterinario veterinario = authService.getVeterinarioLogado();
         Fornecedor fornecedor = buscarFornecedorDoVeterinario(dto.fornecedorId(), veterinarioId);
 
         Insumo insumo = new Insumo();
-        insumo.setNomeComercial(dto.nomeComercial());
-        insumo.setTipo(dto.tipo());
-        insumo.setPrincipioAtivo(dto.principioAtivo());
+        preencherInsumo(insumo, dto);
         insumo.setFornecedor(fornecedor);
         insumo.setVeterinario(veterinario);
 
@@ -63,13 +76,13 @@ public class InsumoService {
 
     @Transactional
     public InsumoResponseDTO atualizar(Long id, InsumoRequestDTO dto) {
+        validarEstoques(dto);
+
         Long veterinarioId = authService.getVeterinarioLogadoId();
         Insumo insumo = buscarEntidadePorId(id);
         Fornecedor fornecedor = buscarFornecedorDoVeterinario(dto.fornecedorId(), veterinarioId);
 
-        insumo.setNomeComercial(dto.nomeComercial());
-        insumo.setTipo(dto.tipo());
-        insumo.setPrincipioAtivo(dto.principioAtivo());
+        preencherInsumo(insumo, dto);
         insumo.setFornecedor(fornecedor);
 
         return toResponse(insumo);
@@ -93,14 +106,40 @@ public class InsumoService {
                 .orElseThrow(() -> new NotFoundException("Fornecedor nao encontrado"));
     }
 
+    private void preencherInsumo(Insumo insumo, InsumoRequestDTO dto) {
+        insumo.setNomeComercial(dto.nomeComercial());
+        insumo.setTipo(dto.tipo());
+        insumo.setPrincipioAtivo(dto.principioAtivo());
+        insumo.setUnidadeMedida(dto.unidadeMedida());
+        insumo.setEstoqueAtual(dto.estoqueAtual());
+        insumo.setEstoqueMinimo(dto.estoqueMinimo());
+        insumo.setDataValidade(dto.dataValidade());
+        insumo.setObservacoes(dto.observacoes());
+    }
+
+    private void validarEstoques(InsumoRequestDTO dto) {
+        if (dto.estoqueAtual() != null && dto.estoqueAtual() < 0) {
+            throw new BadRequestException("Estoque atual nao pode ser negativo");
+        }
+
+        if (dto.estoqueMinimo() != null && dto.estoqueMinimo() < 0) {
+            throw new BadRequestException("Estoque minimo nao pode ser negativo");
+        }
+    }
+
     private InsumoResponseDTO toResponse(Insumo insumo) {
         return new InsumoResponseDTO(
                 insumo.getId(),
                 insumo.getNomeComercial(),
                 insumo.getTipo(),
                 insumo.getPrincipioAtivo(),
+                insumo.getUnidadeMedida(),
+                insumo.getEstoqueAtual(),
+                insumo.getEstoqueMinimo(),
+                insumo.getDataValidade(),
                 insumo.getFornecedor().getId(),
-                insumo.getFornecedor().getNome()
+                insumo.getFornecedor().getNome(),
+                insumo.getObservacoes()
         );
     }
 }

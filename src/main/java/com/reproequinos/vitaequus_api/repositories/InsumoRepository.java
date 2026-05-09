@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 public interface InsumoRepository extends JpaRepository<Insumo, Long> {
@@ -31,11 +32,22 @@ public interface InsumoRepository extends JpaRepository<Insumo, Long> {
             where i.veterinario.id = :veterinarioId
               and (:tipo is null or i.tipo = :tipo)
               and (:fornecedorId is null or i.fornecedor.id = :fornecedorId)
+              and (:estoqueBaixo is null or :estoqueBaixo = false or (
+                    i.estoqueAtual is not null
+                    and i.estoqueMinimo is not null
+                    and i.estoqueAtual <= i.estoqueMinimo
+              ))
+              and (:vencendoAte is null or (
+                    i.dataValidade is not null
+                    and i.dataValidade <= :vencendoAte
+              ))
             """)
     Page<Insumo> findByFiltros(
             @Param("veterinarioId") Long veterinarioId,
             @Param("tipo") TipoInsumo tipo,
             @Param("fornecedorId") Long fornecedorId,
+            @Param("estoqueBaixo") Boolean estoqueBaixo,
+            @Param("vencendoAte") LocalDate vencendoAte,
             Pageable pageable
     );
 }

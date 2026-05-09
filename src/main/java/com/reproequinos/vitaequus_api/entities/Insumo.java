@@ -1,6 +1,7 @@
 package com.reproequinos.vitaequus_api.entities;
 
 import com.reproequinos.vitaequus_api.entities.Enum.TipoInsumo;
+import com.reproequinos.vitaequus_api.entities.Enum.UnidadeMedidaInsumo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +15,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(
@@ -40,6 +43,22 @@ public class Insumo {
     @Column(name = "principio_ativo", length = 120)
     private String principioAtivo;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unidade_medida", nullable = false, length = 30)
+    private UnidadeMedidaInsumo unidadeMedida;
+
+    @Column(name = "estoque_atual")
+    private Integer estoqueAtual;
+
+    @Column(name = "estoque_minimo")
+    private Integer estoqueMinimo;
+
+    @Column(name = "data_validade")
+    private LocalDate dataValidade;
+
+    @Column(name = "observacoes", length = 500)
+    private String observacoes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fkidFornecedor", nullable = false)
     private Fornecedor fornecedor;
@@ -61,6 +80,21 @@ public class Insumo {
 
     public String getPrincipioAtivo() { return principioAtivo; }
     public void setPrincipioAtivo(String principioAtivo) { this.principioAtivo = principioAtivo; }
+
+    public UnidadeMedidaInsumo getUnidadeMedida() { return unidadeMedida; }
+    public void setUnidadeMedida(UnidadeMedidaInsumo unidadeMedida) { this.unidadeMedida = unidadeMedida; }
+
+    public Integer getEstoqueAtual() { return estoqueAtual; }
+    public void setEstoqueAtual(Integer estoqueAtual) { this.estoqueAtual = estoqueAtual; }
+
+    public Integer getEstoqueMinimo() { return estoqueMinimo; }
+    public void setEstoqueMinimo(Integer estoqueMinimo) { this.estoqueMinimo = estoqueMinimo; }
+
+    public LocalDate getDataValidade() { return dataValidade; }
+    public void setDataValidade(LocalDate dataValidade) { this.dataValidade = dataValidade; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
 
     public Fornecedor getFornecedor() { return fornecedor; }
     public void setFornecedor(Fornecedor fornecedor) { this.fornecedor = fornecedor; }

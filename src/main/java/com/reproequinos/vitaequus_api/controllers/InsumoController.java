@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping("/api/v1/insumos")
 public class InsumoController {
@@ -33,9 +35,11 @@ public class InsumoController {
     public ResponseEntity<Page<InsumoResponseDTO>> listar(
             @RequestParam(required = false) TipoInsumo tipo,
             @RequestParam(required = false) Long fornecedorId,
+            @RequestParam(required = false) Boolean estoqueBaixo,
+            @RequestParam(required = false) LocalDate vencendoAte,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(insumoService.listar(tipo, fornecedorId, pageable));
+        return ResponseEntity.ok(insumoService.listar(tipo, fornecedorId, estoqueBaixo, vencendoAte, pageable));
     }
 
     @GetMapping("/{id}")

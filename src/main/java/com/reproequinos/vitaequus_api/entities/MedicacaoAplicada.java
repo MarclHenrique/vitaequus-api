@@ -1,7 +1,10 @@
 package com.reproequinos.vitaequus_api.entities;
 
+import com.reproequinos.vitaequus_api.entities.Enum.ViaAdministracao;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,26 +15,28 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "medicacao_aplicada")
+@Table(name = "tb16MedicacaoAplicada")
 public class MedicacaoAplicada {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "idMedicacao")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "atendimento_id", nullable = false)
+    @JoinColumn(name = "fktb15idAtendimento", nullable = false)
     private AtendimentoClinico atendimento;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "insumo_id", nullable = false)
+    @JoinColumn(name = "fktb18idInsumo", nullable = false)
     private Insumo insumo;
 
     @Column(name = "dose", length = 50)
     private String dose;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "via_administracao", length = 50)
-    private String viaAdministracao;
+    private ViaAdministracao viaAdministracao;
 
     @Lob
     @Column(name = "observacoes", columnDefinition = "TEXT")
@@ -39,8 +44,8 @@ public class MedicacaoAplicada {
 
     public MedicacaoAplicada() {}
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public AtendimentoClinico getAtendimento() { return atendimento; }
     public void setAtendimento(AtendimentoClinico atendimento) { this.atendimento = atendimento; }
@@ -51,8 +56,8 @@ public class MedicacaoAplicada {
     public String getDose() { return dose; }
     public void setDose(String dose) { this.dose = dose; }
 
-    public String getViaAdministracao() { return viaAdministracao; }
-    public void setViaAdministracao(String viaAdministracao) { this.viaAdministracao = viaAdministracao; }
+    public ViaAdministracao getViaAdministracao() { return viaAdministracao; }
+    public void setViaAdministracao(ViaAdministracao viaAdministracao) { this.viaAdministracao = viaAdministracao; }
 
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }

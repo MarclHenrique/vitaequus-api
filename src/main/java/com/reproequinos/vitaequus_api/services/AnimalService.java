@@ -11,11 +11,11 @@ import com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal;
 import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.*;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -35,6 +35,7 @@ public class AnimalService {
     private final RacaRepository racaRepository;
     private final CuidadorPropriedadeRepository cuidadorRepository;
     private final MovimentacaoAnimalRepository movimentacaoRepository;
+    private final AtendimentoClinicoRepository atendimentoClinicoRepository;
     private final AuthService authService;
 
     @Value("${app.upload.animais-dir:uploads/animais}")
@@ -47,6 +48,7 @@ public class AnimalService {
             RacaRepository racaRepository,
             CuidadorPropriedadeRepository cuidadorRepository,
             MovimentacaoAnimalRepository movimentacaoRepository,
+            AtendimentoClinicoRepository atendimentoClinicoRepository,
             AuthService authService
     ) {
         this.animalRepository = animalRepository;
@@ -55,6 +57,7 @@ public class AnimalService {
         this.racaRepository = racaRepository;
         this.cuidadorRepository = cuidadorRepository;
         this.movimentacaoRepository = movimentacaoRepository;
+        this.atendimentoClinicoRepository = atendimentoClinicoRepository;
         this.authService = authService;
     }
 
@@ -267,12 +270,14 @@ public class AnimalService {
         return toResponse(animal);
     }
 
+    @Transactional(readOnly = true)
     public List<TimelineEventoDTO> timeline(
             Long id,
             LocalDateTime dataInicio,
             LocalDateTime dataFim,
             String tipo
     ) {
+        Long veterinarioId = authService.getVeterinarioLogadoId();
         buscarAnimal(id);
 
         List<TimelineEventoDTO> lista = new ArrayList<>();
@@ -287,6 +292,19 @@ public class AnimalService {
                     "Movimentação",
                     m.getMotivo(),
                     m.getDataMovimentacao()
+            ));
+        }
+
+        List<AtendimentoClinico> atendimentos = atendimentoClinicoRepository
+                .findTimelineByAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+
+        for (AtendimentoClinico atendimento : atendimentos) {
+            lista.add(new TimelineEventoDTO(
+                    atendimento.getId(),
+                    "ATENDIMENTO_CLINICO",
+                    "Atendimento clinico",
+                    atendimento.getTipoAtendimento().name(),
+                    atendimento.getDataHora()
             ));
         }
 

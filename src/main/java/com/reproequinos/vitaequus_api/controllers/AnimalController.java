@@ -10,6 +10,7 @@ import com.reproequinos.vitaequus_api.services.AnimalService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -93,7 +94,9 @@ public class AnimalController {
     @GetMapping("/{id}/timeline")
     public ResponseEntity<List<TimelineEventoDTO>> timeline(
             @PathVariable Long id,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @RequestParam(required = false) LocalDateTime dataInicio,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @RequestParam(required = false) LocalDateTime dataFim,
             @RequestParam(required = false) String tipo
     ) {
