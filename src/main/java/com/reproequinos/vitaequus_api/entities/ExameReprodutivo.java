@@ -15,23 +15,24 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "exame_reprodutivo")
+@Table(name = "tb07ExameReprodutivo")
 public class ExameReprodutivo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "idExame")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "animal_id", nullable = false)
+    @JoinColumn(name = "fktb04idAnimal", nullable = false)
     private Animal animal;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "veterinario_id", nullable = false)
+    @JoinColumn(name = "fktb06idVeterinario", nullable = false)
     private Veterinario veterinario;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "propriedade_id", nullable = false)
+    @JoinColumn(name = "fktb01idPropriedade", nullable = false)
     private Propriedade propriedade;
 
     @Column(name = "data_hora", nullable = false)
@@ -47,7 +48,7 @@ public class ExameReprodutivo {
     private String corpoLuteo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "insumo_id")
+    @JoinColumn(name = "fktb18idInsumo")
     private Insumo insumo;
 
     @Lob
@@ -56,8 +57,8 @@ public class ExameReprodutivo {
 
     public ExameReprodutivo() {}
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public Animal getAnimal() { return animal; }
     public void setAnimal(Animal animal) { this.animal = animal; }

@@ -114,7 +114,7 @@ public class AnimalService {
         animal.setDataNascimento(dto.dataNascimento());
         animal.setPelagem(dto.pelagem());
         animal.setPropriedade(prop);
-        animal.setStatus(dto.status() != null ? dto.status() : StatusAnimal.ativo);
+        animal.setStatus(dto.status() != null ? dto.status() : StatusAnimal.ATIVO);
         animal.setBiografia(dto.biografia());
 
         // 🔹 RAÇA (você já tem, mas mantendo aqui organizado)
@@ -369,7 +369,7 @@ public class AnimalService {
     }
 
     private void validarCategoriaSexo(Categoria categoria, Sexo sexo) {
-        if (categoria == Categoria.Garanhao && sexo != Sexo.M) {
+        if (categoria == Categoria.GARANHAO && sexo != Sexo.M) {
             throw new BadRequestException("Garanhão deve ser macho");
         }
     }

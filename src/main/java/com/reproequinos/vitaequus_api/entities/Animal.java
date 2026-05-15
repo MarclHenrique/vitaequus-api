@@ -63,9 +63,9 @@ public class Animal {
     @JoinColumn(name = "fktb08idDoadora")
     private Doadora doadora;
 
-    // Referência ao Produtor (pai) — entidade do módulo Reprodução
-    @Column(name = "fktb09idProdutor")
-    private Long idProdutor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fktb09idProdutor")
+    private Produtor produtor;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -100,7 +100,7 @@ public class Animal {
         this.proprietario = proprietario;
         this.cuidadorPropriedade = cuidadorPropriedade;
         this.doadora = doadora;
-        this.idProdutor = idProdutor;
+        setIdProdutor(idProdutor);
         this.status = status;
         this.biografia = biografia;
         this.movimentacoes = movimentacoes;
@@ -203,11 +203,25 @@ public class Animal {
     }
 
     public Long getIdProdutor() {
-        return idProdutor;
+        return produtor != null ? produtor.getId() : null;
     }
 
     public void setIdProdutor(Long idProdutor) {
-        this.idProdutor = idProdutor;
+        if (idProdutor == null) {
+            this.produtor = null;
+            return;
+        }
+        Produtor produtor = new Produtor();
+        produtor.setId(idProdutor);
+        this.produtor = produtor;
+    }
+
+    public Produtor getProdutor() {
+        return produtor;
+    }
+
+    public void setProdutor(Produtor produtor) {
+        this.produtor = produtor;
     }
 
     public StatusAnimal getStatus() {

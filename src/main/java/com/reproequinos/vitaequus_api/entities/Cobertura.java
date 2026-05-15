@@ -19,27 +19,28 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "cobertura")
+@Table(name = "tb10Cobertura")
 public class Cobertura {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "idCobertura")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "doadora_id", nullable = false)
+    @JoinColumn(name = "fktb08idDoadora", nullable = false)
     private Doadora doadora;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "produtor_id", nullable = false)
+    @JoinColumn(name = "fktb09idProdutor", nullable = false)
     private Produtor produtor;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "veterinario_id", nullable = false)
+    @JoinColumn(name = "fktb06idVeterinario", nullable = false)
     private Veterinario veterinario;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "propriedade_id", nullable = false)
+    @JoinColumn(name = "fktb01idPropriedade", nullable = false)
     private Propriedade propriedade;
 
     @Enumerated(EnumType.STRING)
@@ -59,8 +60,8 @@ public class Cobertura {
 
     public Cobertura() {}
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public Doadora getDoadora() { return doadora; }
     public void setDoadora(Doadora doadora) { this.doadora = doadora; }

@@ -20,15 +20,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "potro_nascido")
+@Table(name = "tb14PotroNascido")
 public class PotroNascido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "idPotro")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "parto_id", nullable = false)
+    @JoinColumn(name = "fktb13idParto", nullable = false)
     private Parto parto;
 
     @Enumerated(EnumType.STRING)
@@ -48,8 +49,8 @@ public class PotroNascido {
 
     public PotroNascido() {}
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public Parto getParto() { return parto; }
     public void setParto(Parto parto) { this.parto = parto; }

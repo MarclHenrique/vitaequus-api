@@ -14,19 +14,20 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "checkup_gestacional")
+@Table(name = "tb12CheckupGestacional")
 public class CheckupGestacional {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "idCheckup")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "gestacao_id", nullable = false)
+    @JoinColumn(name = "fktb11idGestacao", nullable = false)
     private Gestacao gestacao;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "veterinario_id", nullable = false)
+    @JoinColumn(name = "fktb06idVeterinario", nullable = false)
     private Veterinario veterinario;
 
     @Column(name = "data_hora", nullable = false)
@@ -41,8 +42,8 @@ public class CheckupGestacional {
 
     public CheckupGestacional() {}
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public Gestacao getGestacao() { return gestacao; }
     public void setGestacao(Gestacao gestacao) { this.gestacao = gestacao; }
