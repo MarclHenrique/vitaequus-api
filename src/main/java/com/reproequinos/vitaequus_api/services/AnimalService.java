@@ -38,6 +38,8 @@ public class AnimalService {
     private final AtendimentoClinicoRepository atendimentoClinicoRepository;
     private final ExameReprodutivoRepository exameReprodutivoRepository;
     private final CoberturaRepository coberturaRepository;
+    private final GestacaoRepository gestacaoRepository;
+    private final CheckupGestacionalRepository checkupGestacionalRepository;
     private final AuthService authService;
 
     @Value("${app.upload.animais-dir:uploads/animais}")
@@ -53,6 +55,8 @@ public class AnimalService {
             AtendimentoClinicoRepository atendimentoClinicoRepository,
             ExameReprodutivoRepository exameReprodutivoRepository,
             CoberturaRepository coberturaRepository,
+            GestacaoRepository gestacaoRepository,
+            CheckupGestacionalRepository checkupGestacionalRepository,
             AuthService authService
     ) {
         this.animalRepository = animalRepository;
@@ -64,6 +68,8 @@ public class AnimalService {
         this.atendimentoClinicoRepository = atendimentoClinicoRepository;
         this.exameReprodutivoRepository = exameReprodutivoRepository;
         this.coberturaRepository = coberturaRepository;
+        this.gestacaoRepository = gestacaoRepository;
+        this.checkupGestacionalRepository = checkupGestacionalRepository;
         this.authService = authService;
     }
 
@@ -340,6 +346,39 @@ public class AnimalService {
             ));
         }
 
+        List<Gestacao> gestacoes = gestacaoRepository
+                .findTimelineByDoadoraAnimalAndVeterinario(
+                        id,
+                        veterinarioId,
+                        dataInicio,
+                        dataFim,
+                        dataInicio != null ? dataInicio.toLocalDate() : null,
+                        dataFim != null ? dataFim.toLocalDate() : null
+                );
+
+        for (Gestacao gestacao : gestacoes) {
+            lista.add(new TimelineEventoDTO(
+                    gestacao.getId(),
+                    "GESTACAO",
+                    "Diagnostico de gestacao",
+                    descricaoGestacao(gestacao),
+                    gestacao.getDataDiagnosticoInicial().atStartOfDay()
+            ));
+        }
+
+        List<CheckupGestacional> checkups = checkupGestacionalRepository
+                .findTimelineByDoadoraAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+
+        for (CheckupGestacional checkup : checkups) {
+            lista.add(new TimelineEventoDTO(
+                    checkup.getId(),
+                    "CHECKUP_GESTACIONAL",
+                    "Check-up gestacional",
+                    descricaoCheckupGestacional(checkup),
+                    checkup.getDataHora()
+            ));
+        }
+
         return lista.stream()
                 .filter(e -> dataInicio == null || !e.dataHora().isBefore(dataInicio))
                 .filter(e -> dataFim == null || !e.dataHora().isAfter(dataFim))
@@ -359,6 +398,33 @@ public class AnimalService {
         }
         if (exame.getCorpoLuteo() != null) {
             partes.add("Corpo luteo: " + exame.getCorpoLuteo().name());
+        }
+
+        return String.join("; ", partes);
+    }
+
+    private String descricaoGestacao(Gestacao gestacao) {
+        List<String> partes = new ArrayList<>();
+        partes.add("Resultado: " + gestacao.getResultado().name());
+
+        if (gestacao.getDataPrevisaoParto() != null) {
+            partes.add("Previsao de parto: " + gestacao.getDataPrevisaoParto());
+        }
+        if (gestacao.getObservacoes() != null && !gestacao.getObservacoes().isBlank()) {
+            partes.add(gestacao.getObservacoes());
+        }
+
+        return String.join("; ", partes);
+    }
+
+    private String descricaoCheckupGestacional(CheckupGestacional checkup) {
+        List<String> partes = new ArrayList<>();
+
+        if (checkup.getResultado() != null && !checkup.getResultado().isBlank()) {
+            partes.add(checkup.getResultado());
+        }
+        if (checkup.getObservacoes() != null && !checkup.getObservacoes().isBlank()) {
+            partes.add(checkup.getObservacoes());
         }
 
         return String.join("; ", partes);
