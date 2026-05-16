@@ -1,10 +1,14 @@
 package com.reproequinos.vitaequus_api.entities;
 
+import com.reproequinos.vitaequus_api.entities.Enum.CorpoLuteo;
+import com.reproequinos.vitaequus_api.entities.Enum.EdemaUterino;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,11 +45,13 @@ public class ExameReprodutivo {
     @Column(name = "diametro_folicular", precision = 10, scale = 2)
     private BigDecimal diametroFolicular;
 
-    @Column(name = "edema_uterino", length = 100)
-    private String edemaUterino;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "edema_uterino", length = 20)
+    private EdemaUterino edemaUterino;
 
-    @Column(name = "corpo_luteo", length = 100)
-    private String corpoLuteo;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "corpo_luteo", length = 30)
+    private CorpoLuteo corpoLuteo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fktb18idInsumo")
@@ -75,11 +81,11 @@ public class ExameReprodutivo {
     public BigDecimal getDiametroFolicular() { return diametroFolicular; }
     public void setDiametroFolicular(BigDecimal diametroFolicular) { this.diametroFolicular = diametroFolicular; }
 
-    public String getEdemaUterino() { return edemaUterino; }
-    public void setEdemaUterino(String edemaUterino) { this.edemaUterino = edemaUterino; }
+    public EdemaUterino getEdemaUterino() { return edemaUterino; }
+    public void setEdemaUterino(EdemaUterino edemaUterino) { this.edemaUterino = edemaUterino; }
 
-    public String getCorpoLuteo() { return corpoLuteo; }
-    public void setCorpoLuteo(String corpoLuteo) { this.corpoLuteo = corpoLuteo; }
+    public CorpoLuteo getCorpoLuteo() { return corpoLuteo; }
+    public void setCorpoLuteo(CorpoLuteo corpoLuteo) { this.corpoLuteo = corpoLuteo; }
 
     public Insumo getInsumo() { return insumo; }
     public void setInsumo(Insumo insumo) { this.insumo = insumo; }

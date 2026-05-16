@@ -36,6 +36,7 @@ public class AnimalService {
     private final CuidadorPropriedadeRepository cuidadorRepository;
     private final MovimentacaoAnimalRepository movimentacaoRepository;
     private final AtendimentoClinicoRepository atendimentoClinicoRepository;
+    private final ExameReprodutivoRepository exameReprodutivoRepository;
     private final AuthService authService;
 
     @Value("${app.upload.animais-dir:uploads/animais}")
@@ -49,6 +50,7 @@ public class AnimalService {
             CuidadorPropriedadeRepository cuidadorRepository,
             MovimentacaoAnimalRepository movimentacaoRepository,
             AtendimentoClinicoRepository atendimentoClinicoRepository,
+            ExameReprodutivoRepository exameReprodutivoRepository,
             AuthService authService
     ) {
         this.animalRepository = animalRepository;
@@ -58,6 +60,7 @@ public class AnimalService {
         this.cuidadorRepository = cuidadorRepository;
         this.movimentacaoRepository = movimentacaoRepository;
         this.atendimentoClinicoRepository = atendimentoClinicoRepository;
+        this.exameReprodutivoRepository = exameReprodutivoRepository;
         this.authService = authService;
     }
 
@@ -308,12 +311,41 @@ public class AnimalService {
             ));
         }
 
+        List<ExameReprodutivo> exames = exameReprodutivoRepository
+                .findTimelineByAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+
+        for (ExameReprodutivo exame : exames) {
+            lista.add(new TimelineEventoDTO(
+                    exame.getId(),
+                    "EXAME_REPRODUTIVO",
+                    "Exame reprodutivo",
+                    descricaoExameReprodutivo(exame),
+                    exame.getDataHora()
+            ));
+        }
+
         return lista.stream()
                 .filter(e -> dataInicio == null || !e.dataHora().isBefore(dataInicio))
                 .filter(e -> dataFim == null || !e.dataHora().isAfter(dataFim))
                 .filter(e -> tipo == null || e.tipo().equalsIgnoreCase(tipo))
                 .sorted(Comparator.comparing(TimelineEventoDTO::dataHora).reversed())
                 .toList();
+    }
+
+    private String descricaoExameReprodutivo(ExameReprodutivo exame) {
+        List<String> partes = new ArrayList<>();
+
+        if (exame.getDiametroFolicular() != null) {
+            partes.add("Diametro folicular: " + exame.getDiametroFolicular());
+        }
+        if (exame.getEdemaUterino() != null) {
+            partes.add("Edema uterino: " + exame.getEdemaUterino().name());
+        }
+        if (exame.getCorpoLuteo() != null) {
+            partes.add("Corpo luteo: " + exame.getCorpoLuteo().name());
+        }
+
+        return String.join("; ", partes);
     }
 
     @Transactional
