@@ -20,7 +20,7 @@ public class Produtor {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "fktb04idAnimal", nullable = false)
+    @JoinColumn(name = "fktb04idAnimal", nullable = false, unique = true)
     private Animal animal;
 
     public Produtor() {}

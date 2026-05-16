@@ -37,6 +37,7 @@ public class AnimalService {
     private final MovimentacaoAnimalRepository movimentacaoRepository;
     private final AtendimentoClinicoRepository atendimentoClinicoRepository;
     private final ExameReprodutivoRepository exameReprodutivoRepository;
+    private final CoberturaRepository coberturaRepository;
     private final AuthService authService;
 
     @Value("${app.upload.animais-dir:uploads/animais}")
@@ -51,6 +52,7 @@ public class AnimalService {
             MovimentacaoAnimalRepository movimentacaoRepository,
             AtendimentoClinicoRepository atendimentoClinicoRepository,
             ExameReprodutivoRepository exameReprodutivoRepository,
+            CoberturaRepository coberturaRepository,
             AuthService authService
     ) {
         this.animalRepository = animalRepository;
@@ -61,6 +63,7 @@ public class AnimalService {
         this.movimentacaoRepository = movimentacaoRepository;
         this.atendimentoClinicoRepository = atendimentoClinicoRepository;
         this.exameReprodutivoRepository = exameReprodutivoRepository;
+        this.coberturaRepository = coberturaRepository;
         this.authService = authService;
     }
 
@@ -324,6 +327,19 @@ public class AnimalService {
             ));
         }
 
+        List<Cobertura> coberturas = coberturaRepository
+                .findTimelineByAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+
+        for (Cobertura cobertura : coberturas) {
+            lista.add(new TimelineEventoDTO(
+                    cobertura.getId(),
+                    "COBERTURA",
+                    "Cobertura",
+                    descricaoCobertura(cobertura, id),
+                    cobertura.getDataHora()
+            ));
+        }
+
         return lista.stream()
                 .filter(e -> dataInicio == null || !e.dataHora().isBefore(dataInicio))
                 .filter(e -> dataFim == null || !e.dataHora().isAfter(dataFim))
@@ -343,6 +359,23 @@ public class AnimalService {
         }
         if (exame.getCorpoLuteo() != null) {
             partes.add("Corpo luteo: " + exame.getCorpoLuteo().name());
+        }
+
+        return String.join("; ", partes);
+    }
+
+    private String descricaoCobertura(Cobertura cobertura, Long animalId) {
+        List<String> partes = new ArrayList<>();
+        partes.add(cobertura.getTipoProcedimento().name());
+
+        if (cobertura.getTipoSemen() != null) {
+            partes.add("Semen: " + cobertura.getTipoSemen().name());
+        }
+
+        if (Objects.equals(cobertura.getDoadora().getAnimal().getId(), animalId)) {
+            partes.add("Produtor: " + cobertura.getProdutor().getAnimal().getNome());
+        } else {
+            partes.add("Doadora: " + cobertura.getDoadora().getAnimal().getNome());
         }
 
         return String.join("; ", partes);
