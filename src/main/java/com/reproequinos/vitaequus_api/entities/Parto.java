@@ -16,7 +16,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tb13Parto")
@@ -58,6 +62,13 @@ public class Parto {
     @Column(name = "resultado", nullable = false, length = 10)
     private ResultadoParto resultado;
 
+    @Lob
+    @Column(name = "observacoes", columnDefinition = "TEXT")
+    private String observacoes;
+
+    @OneToMany(mappedBy = "parto")
+    private List<PotroNascido> potros = new ArrayList<>();
+
     public Parto() {}
 
     public Long getId() { return id; }
@@ -86,4 +97,10 @@ public class Parto {
 
     public ResultadoParto getResultado() { return resultado; }
     public void setResultado(ResultadoParto resultado) { this.resultado = resultado; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
+    public List<PotroNascido> getPotros() { return potros; }
+    public void setPotros(List<PotroNascido> potros) { this.potros = potros; }
 }

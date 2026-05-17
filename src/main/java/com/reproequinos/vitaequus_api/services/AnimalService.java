@@ -40,6 +40,8 @@ public class AnimalService {
     private final CoberturaRepository coberturaRepository;
     private final GestacaoRepository gestacaoRepository;
     private final CheckupGestacionalRepository checkupGestacionalRepository;
+    private final PartoRepository partoRepository;
+    private final PotroNascidoRepository potroNascidoRepository;
     private final AuthService authService;
 
     @Value("${app.upload.animais-dir:uploads/animais}")
@@ -57,6 +59,8 @@ public class AnimalService {
             CoberturaRepository coberturaRepository,
             GestacaoRepository gestacaoRepository,
             CheckupGestacionalRepository checkupGestacionalRepository,
+            PartoRepository partoRepository,
+            PotroNascidoRepository potroNascidoRepository,
             AuthService authService
     ) {
         this.animalRepository = animalRepository;
@@ -70,6 +74,8 @@ public class AnimalService {
         this.coberturaRepository = coberturaRepository;
         this.gestacaoRepository = gestacaoRepository;
         this.checkupGestacionalRepository = checkupGestacionalRepository;
+        this.partoRepository = partoRepository;
+        this.potroNascidoRepository = potroNascidoRepository;
         this.authService = authService;
     }
 
@@ -379,6 +385,32 @@ public class AnimalService {
             ));
         }
 
+        List<Parto> partos = partoRepository
+                .findTimelineByDoadoraAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+
+        for (Parto parto : partos) {
+            lista.add(new TimelineEventoDTO(
+                    parto.getId(),
+                    "PARTO",
+                    "Parto registrado",
+                    descricaoParto(parto),
+                    parto.getDataHora()
+            ));
+        }
+
+        List<PotroNascido> nascimentos = potroNascidoRepository
+                .findTimelineByAnimalCriadoAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+
+        for (PotroNascido potro : nascimentos) {
+            lista.add(new TimelineEventoDTO(
+                    potro.getId(),
+                    "NASCIMENTO",
+                    "Nascimento",
+                    descricaoNascimento(potro),
+                    potro.getParto().getDataHora()
+            ));
+        }
+
         return lista.stream()
                 .filter(e -> dataInicio == null || !e.dataHora().isBefore(dataInicio))
                 .filter(e -> dataFim == null || !e.dataHora().isAfter(dataFim))
@@ -425,6 +457,36 @@ public class AnimalService {
         }
         if (checkup.getObservacoes() != null && !checkup.getObservacoes().isBlank()) {
             partes.add(checkup.getObservacoes());
+        }
+
+        return String.join("; ", partes);
+    }
+
+    private String descricaoParto(Parto parto) {
+        List<String> partes = new ArrayList<>();
+        partes.add("Tipo: " + parto.getTipoParto().name());
+        partes.add("Resultado: " + parto.getResultado().name());
+        partes.add("Potros: " + (parto.getPotros() != null ? parto.getPotros().size() : 0));
+
+        if (parto.getIntercorrencias() != null && !parto.getIntercorrencias().isBlank()) {
+            partes.add("Intercorrencias: " + parto.getIntercorrencias());
+        }
+
+        return String.join("; ", partes);
+    }
+
+    private String descricaoNascimento(PotroNascido potro) {
+        List<String> partes = new ArrayList<>();
+        partes.add("Resultado: " + potro.getResultado().name());
+
+        if (potro.getPesoNascimento() != null) {
+            partes.add("Peso: " + potro.getPesoNascimento());
+        }
+        if (potro.getCondicaoNeonato() != null) {
+            partes.add("Condicao: " + potro.getCondicaoNeonato().name());
+        }
+        if (potro.getObservacoes() != null && !potro.getObservacoes().isBlank()) {
+            partes.add(potro.getObservacoes());
         }
 
         return String.join("; ", partes);

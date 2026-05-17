@@ -1,5 +1,6 @@
 package com.reproequinos.vitaequus_api.entities;
 
+import com.reproequinos.vitaequus_api.entities.Enum.CondicaoNeonato;
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoPotro;
 
 
@@ -32,9 +33,16 @@ public class PotroNascido {
     @JoinColumn(name = "fktb13idParto", nullable = false)
     private Parto parto;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fktb04idAnimal")
+    private Animal animalCriado;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "sexo", nullable = false, length = 10)
     private Sexo sexo;
+
+    @Column(name = "pelagem_inicial", length = 80)
+    private String pelagemInicial;
 
     @Column(name = "peso_nascimento", precision = 10, scale = 2)
     private BigDecimal pesoNascimento;
@@ -42,6 +50,10 @@ public class PotroNascido {
     @Enumerated(EnumType.STRING)
     @Column(name = "resultado", nullable = false, length = 15)
     private ResultadoPotro resultado;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condicao_neonato", length = 20)
+    private CondicaoNeonato condicaoNeonato;
 
     @Lob
     @Column(name = "observacoes", columnDefinition = "TEXT")
@@ -55,14 +67,23 @@ public class PotroNascido {
     public Parto getParto() { return parto; }
     public void setParto(Parto parto) { this.parto = parto; }
 
+    public Animal getAnimalCriado() { return animalCriado; }
+    public void setAnimalCriado(Animal animalCriado) { this.animalCriado = animalCriado; }
+
     public Sexo getSexo() { return sexo; }
     public void setSexo(Sexo sexo) { this.sexo = sexo; }
+
+    public String getPelagemInicial() { return pelagemInicial; }
+    public void setPelagemInicial(String pelagemInicial) { this.pelagemInicial = pelagemInicial; }
 
     public BigDecimal getPesoNascimento() { return pesoNascimento; }
     public void setPesoNascimento(BigDecimal pesoNascimento) { this.pesoNascimento = pesoNascimento; }
 
     public ResultadoPotro getResultado() { return resultado; }
     public void setResultado(ResultadoPotro resultado) { this.resultado = resultado; }
+
+    public CondicaoNeonato getCondicaoNeonato() { return condicaoNeonato; }
+    public void setCondicaoNeonato(CondicaoNeonato condicaoNeonato) { this.condicaoNeonato = condicaoNeonato; }
 
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
