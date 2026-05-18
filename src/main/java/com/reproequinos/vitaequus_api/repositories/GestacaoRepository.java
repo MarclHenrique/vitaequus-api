@@ -1,6 +1,7 @@
 package com.reproequinos.vitaequus_api.repositories;
 
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao;
+import com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao;
 import com.reproequinos.vitaequus_api.entities.Gestacao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ public interface GestacaoRepository extends JpaRepository<Gestacao, Long> {
               and (:doadoraId is null or g.doadora.id = :doadoraId)
               and (:coberturaId is null or g.cobertura.id = :coberturaId)
               and (:resultado is null or g.resultado = :resultado)
+              and (:status is null or g.status = :status)
               and (:dataInicio is null or g.dataDiagnosticoInicial >= :dataInicio)
               and (:dataFim is null or g.dataDiagnosticoInicial <= :dataFim)
             """)
@@ -43,6 +45,7 @@ public interface GestacaoRepository extends JpaRepository<Gestacao, Long> {
             @Param("doadoraId") Long doadoraId,
             @Param("coberturaId") Long coberturaId,
             @Param("resultado") ResultadoGestacao resultado,
+            @Param("status") StatusGestacao status,
             @Param("dataInicio") LocalDate dataInicio,
             @Param("dataFim") LocalDate dataFim,
             Pageable pageable

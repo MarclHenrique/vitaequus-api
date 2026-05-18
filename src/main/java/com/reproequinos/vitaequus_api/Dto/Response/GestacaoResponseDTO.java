@@ -1,6 +1,7 @@
 package com.reproequinos.vitaequus_api.Dto.Response;
 
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao;
+import com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,6 +18,7 @@ public record GestacaoResponseDTO(
         String veterinarioNome,
         LocalDate dataDiagnosticoInicial,
         ResultadoGestacao resultado,
+        StatusGestacao status,
         LocalDate dataPrevisaoParto,
         String observacoes,
         List<CheckupGestacionalResponseDTO> checkups

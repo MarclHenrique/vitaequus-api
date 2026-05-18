@@ -10,6 +10,7 @@ import com.reproequinos.vitaequus_api.entities.Animal;
 import com.reproequinos.vitaequus_api.entities.Doadora;
 import com.reproequinos.vitaequus_api.entities.Enum.Categoria;
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao;
+import com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao;
 import com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal;
 import com.reproequinos.vitaequus_api.entities.Gestacao;
 import com.reproequinos.vitaequus_api.entities.Parto;
@@ -119,6 +120,7 @@ public class PartoService {
         parto.setObservacoes(dto.observacoes());
 
         Parto partoSalvo = partoRepository.save(parto);
+        gestacao.setStatus(StatusGestacao.FINALIZADA);
 
         for (PotroNascidoRequestDTO potroDto : potrosInformados(dto.potros())) {
             criarPotro(partoSalvo, potroDto);

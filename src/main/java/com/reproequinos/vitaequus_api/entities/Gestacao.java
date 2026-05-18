@@ -1,6 +1,7 @@
 package com.reproequinos.vitaequus_api.entities;
 
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao;
+import com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao;
 
 import java.time.LocalDate;
 
@@ -41,6 +42,10 @@ public class Gestacao {
     @Column(name = "resultado", nullable = false, length = 20)
     private ResultadoGestacao resultado;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private StatusGestacao status = StatusGestacao.EM_ANDAMENTO;
+
     @Column(name = "data_previsao_parto")
     private LocalDate dataPrevisaoParto;
 
@@ -64,6 +69,9 @@ public class Gestacao {
 
     public ResultadoGestacao getResultado() { return resultado; }
     public void setResultado(ResultadoGestacao resultado) { this.resultado = resultado; }
+
+    public StatusGestacao getStatus() { return status; }
+    public void setStatus(StatusGestacao status) { this.status = status; }
 
     public LocalDate getDataPrevisaoParto() { return dataPrevisaoParto; }
     public void setDataPrevisaoParto(LocalDate dataPrevisaoParto) { this.dataPrevisaoParto = dataPrevisaoParto; }

@@ -7,6 +7,7 @@ import com.reproequinos.vitaequus_api.Dto.Request.GestacaoResultadoUpdateDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.CheckupGestacionalResponseDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.GestacaoResponseDTO;
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao;
+import com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao;
 import com.reproequinos.vitaequus_api.services.GestacaoService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -42,6 +43,7 @@ public class GestacaoController {
             @RequestParam(required = false) Long doadoraId,
             @RequestParam(required = false) Long coberturaId,
             @RequestParam(required = false) ResultadoGestacao resultado,
+            @RequestParam(required = false) StatusGestacao status,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @RequestParam(required = false) LocalDate dataInicio,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -49,7 +51,7 @@ public class GestacaoController {
             Pageable pageable
     ) {
         return ResponseEntity.ok(
-                gestacaoService.listar(doadoraId, coberturaId, resultado, dataInicio, dataFim, pageable)
+                gestacaoService.listar(doadoraId, coberturaId, resultado, status, dataInicio, dataFim, pageable)
         );
     }
 

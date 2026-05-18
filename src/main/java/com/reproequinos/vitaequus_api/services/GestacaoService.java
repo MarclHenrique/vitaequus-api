@@ -11,6 +11,7 @@ import com.reproequinos.vitaequus_api.entities.CheckupGestacional;
 import com.reproequinos.vitaequus_api.entities.Cobertura;
 import com.reproequinos.vitaequus_api.entities.Doadora;
 import com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao;
+import com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao;
 import com.reproequinos.vitaequus_api.entities.Gestacao;
 import com.reproequinos.vitaequus_api.entities.Veterinario;
 import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
@@ -58,6 +59,7 @@ public class GestacaoService {
             Long doadoraId,
             Long coberturaId,
             ResultadoGestacao resultado,
+            StatusGestacao status,
             LocalDate dataInicio,
             LocalDate dataFim,
             Pageable pageable
@@ -73,7 +75,7 @@ public class GestacaoService {
         }
 
         return gestacaoRepository
-                .findByFiltros(veterinarioId, doadoraId, coberturaId, resultado, dataInicio, dataFim, pageable)
+                .findByFiltros(veterinarioId, doadoraId, coberturaId, resultado, status, dataInicio, dataFim, pageable)
                 .map(gestacao -> toResponse(gestacao, null));
     }
 
@@ -104,6 +106,7 @@ public class GestacaoService {
         gestacao.setCobertura(cobertura);
         gestacao.setDataDiagnosticoInicial(dataDiagnostico);
         gestacao.setResultado(dto.resultado());
+        gestacao.setStatus(statusPorResultado(dto.resultado()));
         gestacao.setDataPrevisaoParto(dto.dataPrevisaoParto());
         gestacao.setObservacoes(dto.observacoes());
 
@@ -123,6 +126,7 @@ public class GestacaoService {
         Gestacao gestacao = buscarGestacaoDoVeterinario(id, veterinarioId);
 
         gestacao.setResultado(dto.resultado());
+        gestacao.setStatus(statusPorResultado(dto.resultado()));
         gestacao.setObservacoes(dto.observacoes());
 
         if (dto.resultado() == ResultadoGestacao.PRENHE
@@ -238,6 +242,12 @@ public class GestacaoService {
         }
     }
 
+    private StatusGestacao statusPorResultado(ResultadoGestacao resultado) {
+        return resultado == ResultadoGestacao.PRENHE
+                ? StatusGestacao.EM_ANDAMENTO
+                : StatusGestacao.FINALIZADA;
+    }
+
     private GestacaoResponseDTO toResponse(Gestacao gestacao, List<CheckupGestacional> checkups) {
         Cobertura cobertura = gestacao.getCobertura();
         Doadora doadora = gestacao.getDoadora();
@@ -254,6 +264,7 @@ public class GestacaoService {
                 cobertura.getVeterinario().getNome(),
                 gestacao.getDataDiagnosticoInicial(),
                 gestacao.getResultado(),
+                gestacao.getStatus(),
                 gestacao.getDataPrevisaoParto(),
                 gestacao.getObservacoes(),
                 checkups != null ? checkups.stream().map(this::toCheckupResponse).toList() : null
