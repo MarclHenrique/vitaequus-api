@@ -12,4 +12,6 @@ public interface VeterinarioRepository extends JpaRepository<Veterinario, Long> 
     Optional<Veterinario> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    boolean existsByEmailAndIdNot(String email, Long id);
 }
