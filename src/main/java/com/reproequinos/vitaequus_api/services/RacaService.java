@@ -8,6 +8,10 @@ import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.RacaRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +23,11 @@ public class RacaService {
 
     public RacaService(RacaRepository repository) {
         this.repository = repository;
+    }
+
+    public Page<RacaResponseDTO> listar(String nome, Integer status, Pageable pageable) {
+        return repository.findByFiltros(nome, status, defaultSort(pageable, "nome", Sort.Direction.ASC))
+                .map(this::toResponse);
     }
 
     public List<RacaResponseDTO> listarAtivas() {
@@ -77,5 +86,12 @@ public class RacaService {
                 r.getNome(),
                 r.getStatus()
         );
+    }
+
+    private Pageable defaultSort(Pageable pageable, String property, Sort.Direction direction) {
+        if (pageable.getSort().isSorted()) {
+            return pageable;
+        }
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, property));
     }
 }

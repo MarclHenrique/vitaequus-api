@@ -5,8 +5,11 @@ import com.reproequinos.vitaequus_api.Dto.Request.PropriedadeSimplesRequestDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.PropriedadeResponseDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.PropriedadeResponseDtov2;
 import com.reproequinos.vitaequus_api.Dto.Resumo.ProprietarioResumoDTO;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoPropriedade;
 import com.reproequinos.vitaequus_api.services.PropriedadeService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +27,15 @@ public class PropriedadeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PropriedadeResponseDTO>> listar() {
-        return ResponseEntity.ok(propriedadeService.listar());
+    public ResponseEntity<Page<PropriedadeResponseDTO>> listar(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String cidade,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) TipoPropriedade tipoPropriedade,
+            @RequestParam(required = false) Boolean ativo,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(propriedadeService.listar(nome, cidade, estado, tipoPropriedade, ativo, pageable));
     }
 
     @GetMapping("/{id}")

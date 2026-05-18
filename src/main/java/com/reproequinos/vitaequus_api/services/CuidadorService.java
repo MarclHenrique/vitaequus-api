@@ -16,6 +16,8 @@ import com.reproequinos.vitaequus_api.repositories.CuidadorPropriedadeRepository
 import com.reproequinos.vitaequus_api.repositories.CuidadorRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,13 +42,11 @@ public class CuidadorService {
         this.authService = authService;
     }
 
-    public List<CuidadorResponseDTO> listar() {
+    public Page<CuidadorResponseDTO> listar(String nome, String telefone, Boolean ativo, Pageable pageable) {
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return cuidadorRepository.findDistinctByVeterinarioId(veterinarioId)
-                .stream()
-                .map(this::toCuidadorResponse)
-                .toList();
+        return cuidadorRepository.findByFiltros(veterinarioId, nome, telefone, ativo, pageable)
+                .map(this::toCuidadorResponse);
     }
 
     @Transactional

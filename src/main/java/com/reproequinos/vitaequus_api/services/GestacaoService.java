@@ -21,7 +21,9 @@ import com.reproequinos.vitaequus_api.repositories.CoberturaRepository;
 import com.reproequinos.vitaequus_api.repositories.DoadoraRepository;
 import com.reproequinos.vitaequus_api.repositories.GestacaoRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -138,14 +140,36 @@ public class GestacaoService {
     }
 
     @Transactional(readOnly = true)
-    public List<CheckupGestacionalResponseDTO> listarCheckups(Long gestacaoId) {
+    public Page<CheckupGestacionalResponseDTO> listarCheckups(
+            Long gestacaoId,
+            String resultado,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim,
+            Pageable pageable
+    ) {
         Long veterinarioId = authService.getVeterinarioLogadoId();
+        validarPeriodo(dataInicio, dataFim);
         buscarGestacaoDoVeterinario(gestacaoId, veterinarioId);
 
-        return listarCheckupsEntidades(gestacaoId, veterinarioId)
-                .stream()
-                .map(this::toCheckupResponse)
-                .toList();
+        return checkupRepository
+                .findByFiltros(gestacaoId, veterinarioId, resultado, dataInicio, dataFim, defaultSort(pageable, "dataHora", Sort.Direction.DESC))
+                .map(this::toCheckupResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CheckupGestacionalResponseDTO> listarCheckupsGlobais(
+            Long gestacaoId,
+            String resultado,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim,
+            Pageable pageable
+    ) {
+        Long veterinarioId = authService.getVeterinarioLogadoId();
+        validarPeriodo(dataInicio, dataFim);
+
+        return checkupRepository
+                .findByFiltrosGlobais(veterinarioId, gestacaoId, resultado, dataInicio, dataFim, defaultSort(pageable, "dataHora", Sort.Direction.DESC))
+                .map(this::toCheckupResponse);
     }
 
     @Transactional
@@ -242,6 +266,19 @@ public class GestacaoService {
         }
     }
 
+    private void validarPeriodo(LocalDateTime dataInicio, LocalDateTime dataFim) {
+        if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
+            throw new BadRequestException("Data inicial nao pode ser maior que data final");
+        }
+    }
+
+    private Pageable defaultSort(Pageable pageable, String property, Sort.Direction direction) {
+        if (pageable.getSort().isSorted()) {
+            return pageable;
+        }
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, property));
+    }
+
     private StatusGestacao statusPorResultado(ResultadoGestacao resultado) {
         return resultado == ResultadoGestacao.PRENHE
                 ? StatusGestacao.EM_ANDAMENTO
@@ -272,14 +309,20 @@ public class GestacaoService {
     }
 
     private CheckupGestacionalResponseDTO toCheckupResponse(CheckupGestacional checkup) {
+        Gestacao gestacao = checkup.getGestacao();
+        Cobertura cobertura = gestacao.getCobertura();
+        Doadora doadora = gestacao.getDoadora();
+
         return new CheckupGestacionalResponseDTO(
                 checkup.getId(),
-                checkup.getGestacao().getId(),
+                gestacao.getId(),
                 checkup.getVeterinario().getId(),
                 checkup.getVeterinario().getNome(),
                 checkup.getDataHora(),
                 checkup.getResultado(),
-                checkup.getObservacoes()
+                checkup.getObservacoes(),
+                doadora != null && doadora.getAnimal() != null ? doadora.getAnimal().getNome() : null,
+                cobertura != null && cobertura.getPropriedade() != null ? cobertura.getPropriedade().getNome() : null
         );
     }
 }

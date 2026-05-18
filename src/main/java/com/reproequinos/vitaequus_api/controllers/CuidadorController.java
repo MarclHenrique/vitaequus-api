@@ -8,6 +8,8 @@ import com.reproequinos.vitaequus_api.Dto.Response.CuidadorResponseDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.PropriedadeResponseDTO;
 import com.reproequinos.vitaequus_api.services.CuidadorService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +27,13 @@ public class CuidadorController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CuidadorResponseDTO>> listar() {
-        return ResponseEntity.ok(service.listar());
+    public ResponseEntity<Page<CuidadorResponseDTO>> listar(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String telefone,
+            @RequestParam(required = false) Boolean ativo,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(service.listar(nome, telefone, ativo, pageable));
     }
 
     @PostMapping

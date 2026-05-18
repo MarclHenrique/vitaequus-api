@@ -9,12 +9,15 @@ import com.reproequinos.vitaequus_api.auth.AuthService;
 import com.reproequinos.vitaequus_api.entities.Propriedade;
 import com.reproequinos.vitaequus_api.entities.Proprietario;
 import com.reproequinos.vitaequus_api.entities.ProprietarioPropriedade;
+import com.reproequinos.vitaequus_api.entities.Enum.TipoPropriedade;
 import com.reproequinos.vitaequus_api.entities.Veterinario;
 import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioPropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +42,18 @@ public class PropriedadeService {
     }
 
     @Transactional(readOnly = true)
-    public List<PropriedadeResponseDTO> listar() {
+    public Page<PropriedadeResponseDTO> listar(
+            String nome,
+            String cidade,
+            String estado,
+            TipoPropriedade tipoPropriedade,
+            Boolean ativo,
+            Pageable pageable
+    ) {
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return propriedadeRepository.findByAtivoTrueAndVeterinarioId(veterinarioId)
-                .stream()
-                .map(this::toResponseDTO)
-                .toList();
+        return propriedadeRepository.findByFiltros(veterinarioId, nome, cidade, estado, tipoPropriedade, ativo, pageable)
+                .map(this::toResponseDTO);
     }
 
     @Transactional(readOnly = true)

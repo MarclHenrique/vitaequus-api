@@ -16,6 +16,8 @@ import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioPropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,14 +43,12 @@ public class ProprietarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProprietarioResponseDTO> listar() {
+    public Page<ProprietarioResponseDTO> listar(String nome, String documento, String email, Pageable pageable) {
 
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return proprietarioRepository.findDistinctByVeterinarioId(veterinarioId)
-                .stream()
-                .map(this::toResponseDTO)
-                .toList();
+        return proprietarioRepository.findByFiltros(veterinarioId, nome, documento, email, pageable)
+                .map(this::toResponseDTO);
     }
 
     @Transactional(readOnly = true)

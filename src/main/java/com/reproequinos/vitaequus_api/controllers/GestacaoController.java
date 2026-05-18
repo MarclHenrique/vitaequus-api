@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -74,8 +75,16 @@ public class GestacaoController {
     }
 
     @GetMapping("/{id}/checkups")
-    public ResponseEntity<List<CheckupGestacionalResponseDTO>> listarCheckups(@PathVariable Long id) {
-        return ResponseEntity.ok(gestacaoService.listarCheckups(id));
+    public ResponseEntity<Page<CheckupGestacionalResponseDTO>> listarCheckups(
+            @PathVariable Long id,
+            @RequestParam(required = false) String resultado,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @RequestParam(required = false) LocalDateTime dataInicio,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @RequestParam(required = false) LocalDateTime dataFim,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(gestacaoService.listarCheckups(id, resultado, dataInicio, dataFim, pageable));
     }
 
     @PostMapping("/{id}/checkups")

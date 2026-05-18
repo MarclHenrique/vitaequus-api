@@ -9,6 +9,8 @@ public record CheckupGestacionalResponseDTO(
         String veterinarioNome,
         LocalDateTime dataHora,
         String resultado,
-        String observacoes
+        String observacoes,
+        String doadoraNome,
+        String propriedadeNome
 ) {
 }

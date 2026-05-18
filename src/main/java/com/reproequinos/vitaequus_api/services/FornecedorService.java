@@ -9,10 +9,10 @@ import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.FornecedorRepository;
 import com.reproequinos.vitaequus_api.repositories.InsumoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class FornecedorService {
@@ -32,13 +32,11 @@ public class FornecedorService {
     }
 
     @Transactional(readOnly = true)
-    public List<FornecedorResponseDTO> listar() {
+    public Page<FornecedorResponseDTO> listar(String nome, String cidade, String estado, Boolean ativo, Pageable pageable) {
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return fornecedorRepository.findByVeterinarioId(veterinarioId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return fornecedorRepository.findByFiltros(veterinarioId, nome, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
