@@ -72,4 +72,22 @@ public interface GestacaoRepository extends JpaRepository<Gestacao, Long> {
             @Param("dataInicioDate") LocalDate dataInicioDate,
             @Param("dataFimDate") LocalDate dataFimDate
     );
+
+    @EntityGraph(attributePaths = {
+            "doadora", "doadora.animal", "doadora.animal.propriedade",
+            "cobertura", "cobertura.propriedade", "cobertura.veterinario"
+    })
+    @Query("""
+            select g
+            from Gestacao g
+            where g.cobertura.veterinario.id = :veterinarioId
+              and g.resultado = com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao.PRENHE
+              and g.status = com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao.EM_ANDAMENTO
+              and (:propriedadeId is null or g.cobertura.propriedade.id = :propriedadeId)
+            order by g.dataDiagnosticoInicial desc
+            """)
+    List<Gestacao> findPrenhesEmAndamentoDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId
+    );
 }

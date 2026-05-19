@@ -66,4 +66,29 @@ public interface CoberturaRepository extends JpaRepository<Cobertura, Long> {
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim
     );
+
+    @EntityGraph(attributePaths = {
+            "doadora", "doadora.animal", "doadora.animal.propriedade",
+            "propriedade", "veterinario"
+    })
+    @Query("""
+            select c
+            from Cobertura c
+            where c.veterinario.id = :veterinarioId
+              and (:propriedadeId is null or c.propriedade.id = :propriedadeId)
+              and c.dataHora >= :dataInicio
+              and c.dataHora <= :dataFim
+              and not exists (
+                  select 1
+                  from Gestacao g
+                  where g.cobertura.id = c.id
+              )
+            order by c.dataHora desc
+            """)
+    List<Cobertura> findCoberturasSemGestacaoNoPeriodo(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId,
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
 }
