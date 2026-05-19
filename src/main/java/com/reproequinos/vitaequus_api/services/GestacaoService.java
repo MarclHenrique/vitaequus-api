@@ -100,11 +100,11 @@ public class GestacaoService {
         validarDataPrevisaoParto(dataDiagnostico, dto.dataPrevisaoParto());
 
         Cobertura cobertura = buscarCoberturaDoVeterinario(dto.coberturaId(), veterinarioId);
-        Doadora doadora = buscarDoadoraDoVeterinario(dto.doadoraId(), veterinarioId);
-        validarDoadoraDaCobertura(doadora, cobertura);
+        Doadora doadora = cobertura.getDoadora();
+        validarDoadoraInformadaSePresente(dto.doadoraId(), doadora);
 
         Gestacao gestacao = new Gestacao();
-        gestacao.setDoadora(doadora);
+        gestacao.setDoadora(cobertura.getDoadora());
         gestacao.setCobertura(cobertura);
         gestacao.setDataDiagnosticoInicial(dataDiagnostico);
         gestacao.setResultado(dto.resultado());
@@ -248,8 +248,8 @@ public class GestacaoService {
         }
     }
 
-    private void validarDoadoraDaCobertura(Doadora doadora, Cobertura cobertura) {
-        if (!Objects.equals(doadora.getId(), cobertura.getDoadora().getId())) {
+    private void validarDoadoraInformadaSePresente(Long doadoraIdInformada, Doadora doadoraDaCobertura) {
+        if (doadoraIdInformada != null && !Objects.equals(doadoraIdInformada, doadoraDaCobertura.getId())) {
             throw new BadRequestException("Doadora informada nao corresponde a doadora da cobertura");
         }
     }
