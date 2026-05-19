@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface InsumoRepository extends JpaRepository<Insumo, Long> {
@@ -49,5 +50,48 @@ public interface InsumoRepository extends JpaRepository<Insumo, Long> {
             @Param("estoqueBaixo") Boolean estoqueBaixo,
             @Param("vencendoAte") LocalDate vencendoAte,
             Pageable pageable
+    );
+
+    @Query("""
+            select count(i)
+            from Insumo i
+            where i.veterinario.id = :veterinarioId
+              and (
+                    (
+                        i.estoqueAtual is not null
+                        and i.estoqueMinimo is not null
+                        and i.estoqueAtual <= i.estoqueMinimo
+                    )
+                    or (
+                        i.dataValidade is not null
+                        and i.dataValidade <= :dataValidadeLimite
+                    )
+              )
+            """)
+    long countAlertasEstoqueDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("dataValidadeLimite") LocalDate dataValidadeLimite
+    );
+
+    @Query("""
+            select i
+            from Insumo i
+            where i.veterinario.id = :veterinarioId
+              and (
+                    (
+                        i.estoqueAtual is not null
+                        and i.estoqueMinimo is not null
+                        and i.estoqueAtual <= i.estoqueMinimo
+                    )
+                    or (
+                        i.dataValidade is not null
+                        and i.dataValidade <= :dataValidadeLimite
+                    )
+              )
+            order by i.dataValidade asc nulls last, i.nomeComercial asc
+            """)
+    List<Insumo> findAlertasEstoqueDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("dataValidadeLimite") LocalDate dataValidadeLimite
     );
 }

@@ -78,4 +78,60 @@ public interface ExameReprodutivoRepository extends JpaRepository<ExameReproduti
             @Param("animalIds") Collection<Long> animalIds,
             @Param("dataReferenciaFim") LocalDateTime dataReferenciaFim
     );
+
+    @Query("""
+            select count(distinct e.animal.id)
+            from ExameReprodutivo e
+            where e.veterinario.id = :veterinarioId
+              and (:propriedadeId is null or e.propriedade.id = :propriedadeId)
+              and e.animal.categoria in :categorias
+              and e.dataHora >= :dataInicio
+              and e.dataHora <= :dataFim
+            """)
+    long countAnimaisComExameRecenteDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId,
+            @Param("categorias") Collection<com.reproequinos.vitaequus_api.entities.Enum.Categoria> categorias,
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
+
+    @Query("""
+            select distinct e.animal.id
+            from ExameReprodutivo e
+            where e.veterinario.id = :veterinarioId
+              and (:propriedadeId is null or e.propriedade.id = :propriedadeId)
+              and e.animal.categoria in :categorias
+              and e.dataHora >= :dataInicio
+              and e.dataHora <= :dataFim
+            """)
+    List<Long> findAnimalIdsComExameRecenteDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId,
+            @Param("categorias") Collection<com.reproequinos.vitaequus_api.entities.Enum.Categoria> categorias,
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
+
+    @EntityGraph(attributePaths = {"animal", "propriedade"})
+    @Query("""
+            select e
+            from ExameReprodutivo e
+            where e.veterinario.id = :veterinarioId
+              and (:propriedadeId is null or e.propriedade.id = :propriedadeId)
+              and e.animal.categoria in :categorias
+              and e.diametroFolicular is not null
+              and e.diametroFolicular >= :diametroMinimo
+              and e.dataHora >= :dataInicio
+              and e.dataHora <= :dataFim
+            order by e.dataHora asc
+            """)
+    List<ExameReprodutivo> findExamesParaUltrassomDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId,
+            @Param("categorias") Collection<com.reproequinos.vitaequus_api.entities.Enum.Categoria> categorias,
+            @Param("diametroMinimo") java.math.BigDecimal diametroMinimo,
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
 }

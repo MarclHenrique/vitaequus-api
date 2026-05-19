@@ -90,4 +90,17 @@ public interface GestacaoRepository extends JpaRepository<Gestacao, Long> {
             @Param("veterinarioId") Long veterinarioId,
             @Param("propriedadeId") Long propriedadeId
     );
+
+    @Query("""
+            select count(g)
+            from Gestacao g
+            where g.cobertura.veterinario.id = :veterinarioId
+              and g.resultado = com.reproequinos.vitaequus_api.entities.Enum.ResultadoGestacao.PRENHE
+              and g.status = com.reproequinos.vitaequus_api.entities.Enum.StatusGestacao.EM_ANDAMENTO
+              and (:propriedadeId is null or g.cobertura.propriedade.id = :propriedadeId)
+            """)
+    long countPrenhesEmAndamentoDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId
+    );
 }

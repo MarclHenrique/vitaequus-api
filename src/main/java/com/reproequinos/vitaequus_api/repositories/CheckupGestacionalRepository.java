@@ -99,4 +99,25 @@ public interface CheckupGestacionalRepository extends JpaRepository<CheckupGesta
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim
     );
+
+    @EntityGraph(attributePaths = {
+            "gestacao", "gestacao.doadora", "gestacao.doadora.animal",
+            "gestacao.cobertura", "gestacao.cobertura.propriedade", "gestacao.cobertura.veterinario",
+            "veterinario"
+    })
+    @Query("""
+            select c
+            from CheckupGestacional c
+            where c.gestacao.cobertura.veterinario.id = :veterinarioId
+              and (:propriedadeId is null or c.gestacao.cobertura.propriedade.id = :propriedadeId)
+              and c.dataHora >= :dataInicio
+              and c.dataHora <= :dataFim
+            order by c.dataHora asc
+            """)
+    List<CheckupGestacional> findProximosDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId,
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
 }

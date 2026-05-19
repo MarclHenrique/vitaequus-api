@@ -71,4 +71,29 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
             @Param("categorias") Collection<Categoria> categorias,
             @Param("propriedadeId") Long propriedadeId
     );
+
+    @Query("""
+            select count(a)
+            from Animal a
+            where a.propriedade.veterinario.id = :veterinarioId
+              and a.status = com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal.ATIVO
+              and (:propriedadeId is null or a.propriedade.id = :propriedadeId)
+            """)
+    long countAtivosDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("propriedadeId") Long propriedadeId
+    );
+
+    @Query("""
+            select count(a)
+            from Animal a
+            where a.propriedade.veterinario.id = :veterinarioId
+              and a.categoria in :categorias
+              and (:propriedadeId is null or a.propriedade.id = :propriedadeId)
+            """)
+    long countMatrizesDashboard(
+            @Param("veterinarioId") Long veterinarioId,
+            @Param("categorias") Collection<Categoria> categorias,
+            @Param("propriedadeId") Long propriedadeId
+    );
 }
