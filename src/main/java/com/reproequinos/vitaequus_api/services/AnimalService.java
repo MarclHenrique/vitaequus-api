@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,8 +45,14 @@ public class AnimalService {
     private final PotroNascidoRepository potroNascidoRepository;
     private final AuthService authService;
 
-    @Value("${app.upload.animais-dir:uploads/animais}")
+    @Value("${app.upload.base-dir:uploads}")
+    private String uploadBaseDir;
+
+    @Value("${app.upload.animais-dir:animais}")
     private String animaisUploadDir;
+
+    @Value("${app.upload.public-path:/uploads}")
+    private String uploadPublicPath;
 
     public AnimalService(
             AnimalRepository animalRepository,
@@ -227,6 +234,7 @@ public class AnimalService {
     @Transactional
     public FotoResponseDTO uploadFoto(Long id, MultipartFile file) {
         Animal animal = buscarAnimal(id);
+        Long veterinarioId = authService.getVeterinarioLogadoId();
 
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("Arquivo de imagem é obrigatório");
@@ -237,11 +245,23 @@ public class AnimalService {
             throw new BadRequestException("Formato de imagem inválido");
         }
 
+        String extensaoArquivo = validarContentType(file.getContentType(), extensao);
+
         try {
-            Path pasta = Paths.get(animaisUploadDir).toAbsolutePath().normalize();
+            Path pastaBase = Paths.get(uploadBaseDir).toAbsolutePath().normalize();
+            Path pastaAnimais = pastaBase.resolve(animaisUploadDir).normalize();
+            Path pasta = pastaAnimais
+                    .resolve(String.valueOf(veterinarioId))
+                    .resolve(String.valueOf(id))
+                    .normalize();
+
+            if (!pasta.startsWith(pastaBase)) {
+                throw new BadRequestException("Diretorio de upload invalido");
+            }
+
             Files.createDirectories(pasta);
 
-            String nome = "animal_" + id + "_" + UUID.randomUUID() + "." + extensao;
+            String nome = "animal_" + id + "_" + UUID.randomUUID() + "." + extensaoArquivo;
             Path path = pasta.resolve(nome).normalize();
 
             if (!path.startsWith(pasta)) {
@@ -252,8 +272,9 @@ public class AnimalService {
                 Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            String url = "/uploads/animais/" + nome;
+            removerFotoAntiga(animal.getUrlFoto(), pastaBase);
 
+            String url = montarUrlPublica(veterinarioId, id, nome);
             animal.setUrlFoto(url);
 
             return new FotoResponseDTO(url);
@@ -279,6 +300,73 @@ public class AnimalService {
         }
 
         return nomeNormalizado.substring(index + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private String validarContentType(String contentType, String extensao) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new BadRequestException("Tipo de arquivo invalido");
+        }
+
+        return switch (contentType.toLowerCase(Locale.ROOT)) {
+            case "image/jpeg" -> {
+                if (!Set.of("jpg", "jpeg").contains(extensao)) {
+                    throw new BadRequestException("Extensao incompativel com o tipo da imagem");
+                }
+                yield "jpg";
+            }
+            case "image/png" -> {
+                if (!"png".equals(extensao)) {
+                    throw new BadRequestException("Extensao incompativel com o tipo da imagem");
+                }
+                yield "png";
+            }
+            case "image/webp" -> {
+                if (!"webp".equals(extensao)) {
+                    throw new BadRequestException("Extensao incompativel com o tipo da imagem");
+                }
+                yield "webp";
+            }
+            default -> throw new BadRequestException("Tipo de imagem invalido");
+        };
+    }
+
+    private String montarUrlPublica(Long veterinarioId, Long animalId, String nomeArquivo) {
+        String animaisPath = animaisUploadDir.replace("\\", "/").replaceAll("^/+|/+$", "");
+        return normalizarPublicPath() + "/"
+                + animaisPath
+                + "/" + veterinarioId
+                + "/" + animalId
+                + "/" + nomeArquivo;
+    }
+
+    private String normalizarPublicPath() {
+        String publicPath = uploadPublicPath == null || uploadPublicPath.isBlank()
+                ? "/uploads"
+                : uploadPublicPath.trim().replace("\\", "/");
+
+        if (!publicPath.startsWith("/")) {
+            publicPath = "/" + publicPath;
+        }
+
+        return publicPath.replaceAll("/+$", "");
+    }
+
+    private void removerFotoAntiga(String urlFoto, Path pastaBase) throws IOException {
+        if (urlFoto == null || urlFoto.isBlank()) {
+            return;
+        }
+
+        String publicPath = normalizarPublicPath() + "/";
+        if (!urlFoto.startsWith(publicPath)) {
+            return;
+        }
+
+        String caminhoRelativo = urlFoto.substring(publicPath.length());
+        Path fotoAntiga = pastaBase.resolve(caminhoRelativo).normalize();
+
+        if (fotoAntiga.startsWith(pastaBase) && Files.isRegularFile(fotoAntiga)) {
+            Files.deleteIfExists(fotoAntiga);
+        }
     }
 
     @Transactional

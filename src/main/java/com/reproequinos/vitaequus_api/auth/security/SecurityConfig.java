@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth
                             .requestMatchers("/auth/**").permitAll()
+                            .requestMatchers("/uploads/**").permitAll()
                             .requestMatchers("/error", "/error/**").permitAll();
 
                     if (environment.acceptsProfiles(Profiles.of("dev"))) {
