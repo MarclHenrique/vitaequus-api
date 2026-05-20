@@ -14,6 +14,8 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "tb16MedicacaoAplicada")
 public class MedicacaoAplicada {
@@ -33,6 +35,9 @@ public class MedicacaoAplicada {
 
     @Column(name = "dose", length = 50)
     private String dose;
+
+    @Column(name = "quantidade_aplicada", precision = 10, scale = 2)
+    private BigDecimal quantidadeAplicada;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "via_administracao", length = 50)
@@ -55,6 +60,9 @@ public class MedicacaoAplicada {
 
     public String getDose() { return dose; }
     public void setDose(String dose) { this.dose = dose; }
+
+    public BigDecimal getQuantidadeAplicada() { return quantidadeAplicada; }
+    public void setQuantidadeAplicada(BigDecimal quantidadeAplicada) { this.quantidadeAplicada = quantidadeAplicada; }
 
     public ViaAdministracao getViaAdministracao() { return viaAdministracao; }
     public void setViaAdministracao(ViaAdministracao viaAdministracao) { this.viaAdministracao = viaAdministracao; }

@@ -25,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -181,13 +183,40 @@ public class AtendimentoClinicoService {
 
     private MedicacaoAplicada criarMedicacao(MedicacaoAplicadaRequestDTO dto, Long veterinarioId) {
         Insumo insumo = buscarInsumoDoVeterinario(dto.insumoId(), veterinarioId);
+        Integer quantidadeBaixa = validarEConverterQuantidadeAplicada(dto.quantidadeAplicada());
+        descontarEstoque(insumo, quantidadeBaixa);
 
         MedicacaoAplicada medicacao = new MedicacaoAplicada();
         medicacao.setInsumo(insumo);
         medicacao.setDose(dto.dose());
+        medicacao.setQuantidadeAplicada(dto.quantidadeAplicada());
         medicacao.setViaAdministracao(dto.viaAdministracao());
         medicacao.setObservacoes(dto.observacoes());
         return medicacao;
+    }
+
+    private Integer validarEConverterQuantidadeAplicada(BigDecimal quantidadeAplicada) {
+        if (quantidadeAplicada == null || quantidadeAplicada.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Quantidade aplicada deve ser maior que zero");
+        }
+
+        try {
+            return quantidadeAplicada.setScale(0, RoundingMode.UNNECESSARY).intValueExact();
+        } catch (ArithmeticException ex) {
+            throw new BadRequestException("Quantidade aplicada deve ser inteira conforme o controle atual de estoque");
+        }
+    }
+
+    private void descontarEstoque(Insumo insumo, Integer quantidadeAplicada) {
+        if (insumo.getEstoqueAtual() == null) {
+            throw new BadRequestException("Estoque atual do insumo nao informado");
+        }
+
+        if (quantidadeAplicada > insumo.getEstoqueAtual()) {
+            throw new BadRequestException("Estoque insuficiente para o insumo selecionado");
+        }
+
+        insumo.setEstoqueAtual(insumo.getEstoqueAtual() - quantidadeAplicada);
     }
 
     private AtendimentoClinicoResponseDTO toResponse(AtendimentoClinico atendimento) {
@@ -216,8 +245,10 @@ public class AtendimentoClinicoService {
                 medicacao.getAtendimento().getId(),
                 medicacao.getInsumo().getId(),
                 medicacao.getInsumo().getNomeComercial(),
+                medicacao.getInsumo().getNomeComercial(),
                 medicacao.getInsumo().getTipo(),
                 medicacao.getDose(),
+                medicacao.getQuantidadeAplicada(),
                 medicacao.getViaAdministracao(),
                 medicacao.getObservacoes()
         );
