@@ -2,6 +2,8 @@ package com.reproequinos.vitaequus_api.controllers;
 
 import com.reproequinos.vitaequus_api.Dto.Response.DashboardGeralResponseDTO;
 import com.reproequinos.vitaequus_api.services.DashboardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +15,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/dashboard")
+@Tag(name = "Dashboard Geral", description = "Indicadores gerais da operacao")
 public class DashboardController {
 
     private final DashboardService dashboardService;
@@ -22,6 +25,7 @@ public class DashboardController {
     }
 
     @GetMapping
+    @Operation(summary = "Consultar dashboard geral")
     public ResponseEntity<DashboardGeralResponseDTO> buscarDashboard(
             @RequestParam(required = false) Long propriedadeId,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

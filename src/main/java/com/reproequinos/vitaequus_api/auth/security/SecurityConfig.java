@@ -51,19 +51,18 @@ public class SecurityConfig {
                     auth
                             .requestMatchers("/auth/**").permitAll()
                             .requestMatchers("/uploads/**").permitAll()
+                            .requestMatchers(
+                                    "/swagger-ui.html",
+                                    "/swagger-ui/**",
+                                    "/v3/api-docs",
+                                    "/v3/api-docs/**"
+                            ).permitAll()
                             .requestMatchers("/error", "/error/**").permitAll();
 
                     if (environment.acceptsProfiles(Profiles.of("dev"))) {
                         auth.requestMatchers(
                                 "/h2-console/**",
-                                "/v2/api/docs/**",
-                                "/v3/api/docs/**",
-                                "/swagger-resources/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
                                 "/webjars/**",
-                                "/v3/api-docs/swagger-config",
-                                "/v3/api-docs/**",
                                 "/openapi.yaml/**"
                         ).permitAll();
                     }

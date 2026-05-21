@@ -4,6 +4,8 @@ import com.reproequinos.vitaequus_api.Dto.Request.AlterarSenhaRequestDTO;
 import com.reproequinos.vitaequus_api.Dto.Request.VeterinarioPerfilUpdateDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.VeterinarioPerfilResponseDTO;
 import com.reproequinos.vitaequus_api.services.VeterinarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/veterinarios")
+@Tag(name = "Veterinarios / Perfil", description = "Perfil do veterinario logado")
 public class VeterinarioController {
 
     private final VeterinarioService veterinarioService;
@@ -24,11 +27,13 @@ public class VeterinarioController {
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Buscar perfil logado")
     public ResponseEntity<VeterinarioPerfilResponseDTO> buscarPerfilLogado() {
         return ResponseEntity.ok(veterinarioService.buscarPerfilLogado());
     }
 
     @PutMapping("/me")
+    @Operation(summary = "Atualizar perfil logado")
     public ResponseEntity<VeterinarioPerfilResponseDTO> atualizarPerfilLogado(
             @Valid @RequestBody VeterinarioPerfilUpdateDTO dto
     ) {
@@ -36,6 +41,7 @@ public class VeterinarioController {
     }
 
     @PatchMapping("/me/senha")
+    @Operation(summary = "Alterar senha")
     public ResponseEntity<Void> alterarSenha(@Valid @RequestBody AlterarSenhaRequestDTO dto) {
         veterinarioService.alterarSenha(dto);
         return ResponseEntity.noContent().build();

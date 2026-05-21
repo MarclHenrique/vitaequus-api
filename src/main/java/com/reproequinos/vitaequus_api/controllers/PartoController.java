@@ -6,7 +6,10 @@ import com.reproequinos.vitaequus_api.Dto.Request.PotroNascidoRequestDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.PartoResponseDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.PotroNascidoResponseDTO;
 import com.reproequinos.vitaequus_api.services.PartoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,6 +29,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/partos")
+@Tag(name = "Partos / Potros", description = "Registros de partos e potros nascidos")
 public class PartoController {
 
     private final PartoService partoService;
@@ -35,6 +39,7 @@ public class PartoController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar partos")
     public ResponseEntity<Page<PartoResponseDTO>> listar(
             @RequestParam(required = false) Long gestacaoId,
             @RequestParam(required = false) Long doadoraId,
@@ -43,7 +48,7 @@ public class PartoController {
             @RequestParam(required = false) LocalDateTime dataInicio,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @RequestParam(required = false) LocalDateTime dataFim,
-            Pageable pageable
+            @ParameterObject Pageable pageable
     ) {
         return ResponseEntity.ok(
                 partoService.listar(gestacaoId, doadoraId, propriedadeId, dataInicio, dataFim, pageable)
@@ -51,16 +56,19 @@ public class PartoController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar parto por ID")
     public ResponseEntity<PartoResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(partoService.buscarPorId(id));
     }
 
     @PostMapping
+    @Operation(summary = "Registrar parto")
     public ResponseEntity<PartoResponseDTO> criar(@Valid @RequestBody PartoRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(partoService.criar(dto));
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar parto")
     public ResponseEntity<PartoResponseDTO> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody PartoUpdateDTO dto
@@ -69,11 +77,13 @@ public class PartoController {
     }
 
     @GetMapping("/{id}/potros")
+    @Operation(summary = "Listar potros do parto")
     public ResponseEntity<List<PotroNascidoResponseDTO>> listarPotros(@PathVariable Long id) {
         return ResponseEntity.ok(partoService.listarPotros(id));
     }
 
     @PostMapping("/{id}/potros")
+    @Operation(summary = "Adicionar potro ao parto")
     public ResponseEntity<PotroNascidoResponseDTO> adicionarPotro(
             @PathVariable Long id,
             @Valid @RequestBody PotroNascidoRequestDTO dto
@@ -82,6 +92,7 @@ public class PartoController {
     }
 
     @PutMapping("/{idParto}/potros/{idPotro}")
+    @Operation(summary = "Atualizar potro do parto")
     public ResponseEntity<PotroNascidoResponseDTO> atualizarPotro(
             @PathVariable Long idParto,
             @PathVariable Long idPotro,

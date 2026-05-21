@@ -4,7 +4,10 @@ import com.reproequinos.vitaequus_api.Dto.Request.ExameReprodutivoRequestDTO;
 import com.reproequinos.vitaequus_api.Dto.Request.ExameReprodutivoUpdateDTO;
 import com.reproequinos.vitaequus_api.Dto.Response.ExameReprodutivoResponseDTO;
 import com.reproequinos.vitaequus_api.services.ExameReprodutivoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/exames-reprodutivos")
+@Tag(name = "Exames Reprodutivos", description = "Exames e avaliacoes reprodutivas dos animais")
 public class ExameReprodutivoController {
 
     private final ExameReprodutivoService exameService;
@@ -32,6 +36,7 @@ public class ExameReprodutivoController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar exames reprodutivos")
     public ResponseEntity<Page<ExameReprodutivoResponseDTO>> listar(
             @RequestParam(required = false) Long animalId,
             @RequestParam(required = false) Long propriedadeId,
@@ -39,7 +44,7 @@ public class ExameReprodutivoController {
             @RequestParam(required = false) LocalDateTime dataInicio,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             @RequestParam(required = false) LocalDateTime dataFim,
-            Pageable pageable
+            @ParameterObject Pageable pageable
     ) {
         return ResponseEntity.ok(
                 exameService.listar(animalId, propriedadeId, dataInicio, dataFim, pageable)
@@ -47,11 +52,13 @@ public class ExameReprodutivoController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Buscar exame reprodutivo por ID")
     public ResponseEntity<ExameReprodutivoResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(exameService.buscarPorId(id));
     }
 
     @PostMapping
+    @Operation(summary = "Registrar exame reprodutivo")
     public ResponseEntity<ExameReprodutivoResponseDTO> criar(
             @Valid @RequestBody ExameReprodutivoRequestDTO dto
     ) {
@@ -59,6 +66,7 @@ public class ExameReprodutivoController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar exame reprodutivo")
     public ResponseEntity<ExameReprodutivoResponseDTO> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody ExameReprodutivoUpdateDTO dto

@@ -3,6 +3,9 @@ package com.reproequinos.vitaequus_api.auth;
 import com.reproequinos.vitaequus_api.auth.dtos.CadastroRequest;
 import com.reproequinos.vitaequus_api.auth.dtos.LoginRequest;
 import com.reproequinos.vitaequus_api.auth.dtos.TokenResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Auth", description = "Autenticacao e cadastro de veterinarios")
+@SecurityRequirements
 public class AuthController {
 
     private final AuthService authService;
@@ -23,6 +28,7 @@ public class AuthController {
      * POST /auth/cadastro
      * Cria um novo veterinário e retorna o token JWT.
      */
+    @Operation(summary = "Cadastrar veterinario", description = "Cria uma conta de veterinario e retorna um token JWT.")
     @PostMapping("/cadastro")
     public ResponseEntity<TokenResponse> cadastrar(@Valid @RequestBody CadastroRequest request) {
         TokenResponse response = authService.cadastrar(request);
@@ -33,6 +39,7 @@ public class AuthController {
      * POST /auth/login
      * Autentica o veterinário e retorna o token JWT.
      */
+    @Operation(summary = "Login", description = "Autentica o veterinario e retorna um token JWT.")
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse response = authService.login(request);
