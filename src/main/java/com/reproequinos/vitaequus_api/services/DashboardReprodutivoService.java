@@ -18,6 +18,10 @@ import com.reproequinos.vitaequus_api.repositories.CoberturaRepository;
 import com.reproequinos.vitaequus_api.repositories.ExameReprodutivoRepository;
 import com.reproequinos.vitaequus_api.repositories.GestacaoRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
+import com.reproequinos.vitaequus_api.specifications.AnimalSpecifications;
+import com.reproequinos.vitaequus_api.specifications.CoberturaSpecifications;
+import com.reproequinos.vitaequus_api.specifications.GestacaoSpecifications;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,16 +75,22 @@ public class DashboardReprodutivoService {
                     .orElseThrow(() -> new NotFoundException("Propriedade nao encontrada"));
         }
 
-        List<Animal> animais = animalRepository.findReprodutivoDashboardAnimals(
-                veterinarioId,
-                List.of(Categoria.EGUA, Categoria.RECEPTORA),
-                propriedadeId
+        List<Animal> animais = animalRepository.findAll(
+                AnimalSpecifications.dashboardReprodutivos(
+                        veterinarioId,
+                        List.of(Categoria.EGUA, Categoria.RECEPTORA),
+                        propriedadeId
+                ),
+                Sort.by(Sort.Direction.ASC, "nome")
         );
 
         List<Long> animalIds = animais.stream().map(Animal::getId).toList();
         Map<Long, ExameReprodutivo> ultimosExames = buscarUltimosExames(veterinarioId, animalIds, referencia);
         List<Cobertura> coberturasSemGestacao = buscarCoberturasSemGestacao(veterinarioId, propriedadeId, referencia);
-        List<Gestacao> prenhesEmAndamento = gestacaoRepository.findPrenhesEmAndamentoDashboard(veterinarioId, propriedadeId);
+        List<Gestacao> prenhesEmAndamento = gestacaoRepository.findAll(
+                GestacaoSpecifications.prenhesEmAndamento(veterinarioId, propriedadeId),
+                Sort.by(Sort.Direction.DESC, "dataDiagnosticoInicial")
+        );
 
         Map<Long, Cobertura> coberturaPorAnimal = coberturasSemGestacao.stream()
                 .collect(Collectors.toMap(
@@ -166,7 +176,10 @@ public class DashboardReprodutivoService {
     ) {
         LocalDateTime inicio = dataReferencia.minusDays(20).atStartOfDay();
         LocalDateTime fim = dataReferencia.minusDays(10).atTime(LocalTime.MAX);
-        return coberturaRepository.findCoberturasSemGestacaoNoPeriodo(veterinarioId, propriedadeId, inicio, fim);
+        return coberturaRepository.findAll(
+                CoberturaSpecifications.semGestacaoNoPeriodo(veterinarioId, propriedadeId, inicio, fim),
+                Sort.by(Sort.Direction.DESC, "dataHora")
+        );
     }
 
     private boolean isExameRecenteEmAcompanhamento(ExameReprodutivo exame, LocalDate dataReferencia) {

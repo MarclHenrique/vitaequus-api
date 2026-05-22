@@ -20,6 +20,7 @@ import com.reproequinos.vitaequus_api.repositories.DoadoraRepository;
 import com.reproequinos.vitaequus_api.repositories.AnimalRepository;
 import com.reproequinos.vitaequus_api.repositories.ProdutorRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
+import com.reproequinos.vitaequus_api.specifications.CoberturaSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,12 @@ public class CoberturaService {
         }
 
         return coberturaRepository
-                .findByFiltros(veterinarioId, doadoraAnimalId, produtorAnimalId, propriedadeId, dataInicio, dataFim, pageable)
+                .findAll(
+                        CoberturaSpecifications.filtros(
+                                veterinarioId, doadoraAnimalId, produtorAnimalId, propriedadeId, dataInicio, dataFim
+                        ),
+                        pageable
+                )
                 .map(this::toResponse);
     }
 

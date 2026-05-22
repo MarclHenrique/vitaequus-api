@@ -7,6 +7,7 @@ import com.reproequinos.vitaequus_api.entities.Raca;
 import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.RacaRepository;
+import com.reproequinos.vitaequus_api.specifications.RacaSpecifications;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +27,7 @@ public class RacaService {
     }
 
     public Page<RacaResponseDTO> listar(String nome, Integer status, Pageable pageable) {
-        return repository.findByFiltros(nome, status, defaultSort(pageable, "nome", Sort.Direction.ASC))
+        return repository.findAll(RacaSpecifications.filtros(nome, status), defaultSort(pageable, "nome", Sort.Direction.ASC))
                 .map(this::toResponse);
     }
 

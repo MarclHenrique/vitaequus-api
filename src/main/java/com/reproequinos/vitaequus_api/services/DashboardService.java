@@ -23,8 +23,14 @@ import com.reproequinos.vitaequus_api.repositories.ExameReprodutivoRepository;
 import com.reproequinos.vitaequus_api.repositories.GestacaoRepository;
 import com.reproequinos.vitaequus_api.repositories.InsumoRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
+import com.reproequinos.vitaequus_api.specifications.AnimalSpecifications;
+import com.reproequinos.vitaequus_api.specifications.CheckupGestacionalSpecifications;
+import com.reproequinos.vitaequus_api.specifications.CoberturaSpecifications;
+import com.reproequinos.vitaequus_api.specifications.ExameReprodutivoSpecifications;
+import com.reproequinos.vitaequus_api.specifications.GestacaoSpecifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -85,9 +91,11 @@ public class DashboardService {
                     .orElseThrow(() -> new NotFoundException("Propriedade nao encontrada"));
         }
 
-        long plantelAtivo = animalRepository.countAtivosDashboard(veterinarioId, propriedadeId);
-        long totalMatrizes = animalRepository.countMatrizesDashboard(veterinarioId, CATEGORIAS_MATRIZES, propriedadeId);
-        long prenhes = gestacaoRepository.countPrenhesEmAndamentoDashboard(veterinarioId, propriedadeId);
+        long plantelAtivo = animalRepository.count(AnimalSpecifications.dashboardAtivos(veterinarioId, propriedadeId));
+        long totalMatrizes = animalRepository.count(
+                AnimalSpecifications.dashboardMatrizes(veterinarioId, CATEGORIAS_MATRIZES, propriedadeId)
+        );
+        long prenhes = gestacaoRepository.count(GestacaoSpecifications.prenhesEmAndamento(veterinarioId, propriedadeId));
         long alertasEstoque = insumoRepository.countAlertasEstoqueDashboard(veterinarioId, referencia.plusDays(30));
 
         DashboardResumoCardDTO plantelAtivoDto = new DashboardResumoCardDTO(
@@ -124,15 +132,13 @@ public class DashboardService {
         LocalDateTime inicioExames = referencia.minusDays(7).atStartOfDay();
         LocalDateTime fimReferencia = referencia.atTime(LocalTime.MAX);
 
-        Set<Long> emAcompanhamentoIds = new HashSet<>(
-                exameReprodutivoRepository.findAnimalIdsComExameRecenteDashboard(
-                        veterinarioId,
-                        propriedadeId,
-                        CATEGORIAS_MATRIZES,
-                        inicioExames,
-                        fimReferencia
-                )
-        );
+        Set<Long> emAcompanhamentoIds = exameReprodutivoRepository
+                .findAll(ExameReprodutivoSpecifications.dashboardPeriodo(
+                        veterinarioId, propriedadeId, CATEGORIAS_MATRIZES, inicioExames, fimReferencia
+                ))
+                .stream()
+                .map(exame -> exame.getAnimal().getId())
+                .collect(java.util.stream.Collectors.toCollection(HashSet::new));
 
         List<Cobertura> coberturasSemDiagnostico = buscarCoberturasSemDiagnostico(
                 veterinarioId,
@@ -146,7 +152,7 @@ public class DashboardService {
                 .forEach(emAcompanhamentoIds::add);
 
         Set<Long> prenhesIds = new HashSet<>();
-        gestacaoRepository.findPrenhesEmAndamentoDashboard(veterinarioId, propriedadeId).stream()
+        buscarPrenhesEmAndamento(veterinarioId, propriedadeId).stream()
                 .map(gestacao -> gestacao.getDoadora().getAnimal().getId())
                 .forEach(prenhesIds::add);
         emAcompanhamentoIds.removeAll(prenhesIds);
@@ -188,13 +194,16 @@ public class DashboardService {
         LocalDateTime inicio = referencia.minusDays(2).atStartOfDay();
         LocalDateTime fim = referencia.atTime(LocalTime.MAX);
         return exameReprodutivoRepository
-                .findExamesParaUltrassomDashboard(
-                        veterinarioId,
-                        propriedadeId,
-                        CATEGORIAS_MATRIZES,
-                        DIAMETRO_ALERTA_ULTRASSOM,
-                        inicio,
-                        fim
+                .findAll(
+                        ExameReprodutivoSpecifications.dashboardUltrassom(
+                                veterinarioId,
+                                propriedadeId,
+                                CATEGORIAS_MATRIZES,
+                                DIAMETRO_ALERTA_ULTRASSOM,
+                                inicio,
+                                fim
+                        ),
+                        Sort.by(Sort.Direction.ASC, "dataHora")
                 )
                 .stream()
                 .map(exame -> {
@@ -229,7 +238,7 @@ public class DashboardService {
     }
 
     private List<DashboardAgendaItemDTO> alertasParto(Long veterinarioId, Long propriedadeId, LocalDate referencia) {
-        return gestacaoRepository.findPrenhesEmAndamentoDashboard(veterinarioId, propriedadeId).stream()
+        return buscarPrenhesEmAndamento(veterinarioId, propriedadeId).stream()
                 .filter(gestacao -> isPartoProximo(gestacao, referencia))
                 .map(gestacao -> {
                     Animal animal = gestacao.getDoadora().getAnimal();
@@ -248,11 +257,14 @@ public class DashboardService {
 
     private List<DashboardAgendaItemDTO> alertasCheckup(Long veterinarioId, Long propriedadeId, LocalDate referencia) {
         return checkupGestacionalRepository
-                .findProximosDashboard(
-                        veterinarioId,
-                        propriedadeId,
-                        referencia.atStartOfDay(),
-                        referencia.plusDays(7).atTime(LocalTime.MAX)
+                .findAll(
+                        CheckupGestacionalSpecifications.proximosDashboard(
+                                veterinarioId,
+                                propriedadeId,
+                                referencia.atStartOfDay(),
+                                referencia.plusDays(7).atTime(LocalTime.MAX)
+                        ),
+                        Sort.by(Sort.Direction.ASC, "dataHora")
                 )
                 .stream()
                 .map(checkup -> {
@@ -291,7 +303,17 @@ public class DashboardService {
     ) {
         LocalDateTime inicio = referencia.minusDays(diasMaximo).atStartOfDay();
         LocalDateTime fim = referencia.minusDays(diasMinimo).atTime(LocalTime.MAX);
-        return coberturaRepository.findCoberturasSemGestacaoNoPeriodo(veterinarioId, propriedadeId, inicio, fim);
+        return coberturaRepository.findAll(
+                CoberturaSpecifications.semGestacaoNoPeriodo(veterinarioId, propriedadeId, inicio, fim),
+                Sort.by(Sort.Direction.DESC, "dataHora")
+        );
+    }
+
+    private List<Gestacao> buscarPrenhesEmAndamento(Long veterinarioId, Long propriedadeId) {
+        return gestacaoRepository.findAll(
+                GestacaoSpecifications.prenhesEmAndamento(veterinarioId, propriedadeId),
+                Sort.by(Sort.Direction.DESC, "dataDiagnosticoInicial")
+        );
     }
 
     private boolean isPartoProximo(Gestacao gestacao, LocalDate referencia) {

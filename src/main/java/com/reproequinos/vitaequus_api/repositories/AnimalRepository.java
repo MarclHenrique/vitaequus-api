@@ -7,14 +7,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Sort;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface AnimalRepository extends JpaRepository<Animal, Long> {
+public interface AnimalRepository extends JpaRepository<Animal, Long>, JpaSpecificationExecutor<Animal> {
 
     Page<Animal> findByCategoriaAndStatusAndPropriedadeId(
             Categoria categoria,
@@ -56,44 +57,7 @@ public interface AnimalRepository extends JpaRepository<Animal, Long> {
             Pageable pageable
     );
 
+    @Override
     @EntityGraph(attributePaths = {"propriedade"})
-    @Query("""
-            select a
-            from Animal a
-            where a.propriedade.veterinario.id = :veterinarioId
-              and a.categoria in :categorias
-              and a.status = com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal.ATIVO
-              and (:propriedadeId is null or a.propriedade.id = :propriedadeId)
-            order by a.nome asc
-            """)
-    List<Animal> findReprodutivoDashboardAnimals(
-            @Param("veterinarioId") Long veterinarioId,
-            @Param("categorias") Collection<Categoria> categorias,
-            @Param("propriedadeId") Long propriedadeId
-    );
-
-    @Query("""
-            select count(a)
-            from Animal a
-            where a.propriedade.veterinario.id = :veterinarioId
-              and a.status = com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal.ATIVO
-              and (:propriedadeId is null or a.propriedade.id = :propriedadeId)
-            """)
-    long countAtivosDashboard(
-            @Param("veterinarioId") Long veterinarioId,
-            @Param("propriedadeId") Long propriedadeId
-    );
-
-    @Query("""
-            select count(a)
-            from Animal a
-            where a.propriedade.veterinario.id = :veterinarioId
-              and a.categoria in :categorias
-              and (:propriedadeId is null or a.propriedade.id = :propriedadeId)
-            """)
-    long countMatrizesDashboard(
-            @Param("veterinarioId") Long veterinarioId,
-            @Param("categorias") Collection<Categoria> categorias,
-            @Param("propriedadeId") Long propriedadeId
-    );
+    List<Animal> findAll(Specification<Animal> spec, Sort sort);
 }

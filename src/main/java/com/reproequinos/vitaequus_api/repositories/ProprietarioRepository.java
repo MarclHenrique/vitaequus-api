@@ -4,13 +4,14 @@ import com.reproequinos.vitaequus_api.entities.Proprietario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ProprietarioRepository extends JpaRepository<Proprietario, Long> {
+public interface ProprietarioRepository extends JpaRepository<Proprietario, Long>, JpaSpecificationExecutor<Proprietario> {
     boolean existsByNrDocumento(String nrDocumento);
     boolean existsByNrDocumentoAndIdNot(String nrDocumento, Long id);
     Optional<Proprietario> findById(Long id);
@@ -24,34 +25,6 @@ public interface ProprietarioRepository extends JpaRepository<Proprietario, Long
                or prop.veterinario.id = :veterinarioId
             """)
     List<Proprietario> findDistinctByVeterinarioId(@Param("veterinarioId") Long veterinarioId);
-
-    @Query(value = """
-            select distinct p
-            from Proprietario p
-            left join p.proprietarioPropriedades pp
-            left join pp.propriedade prop
-            where (p.veterinario.id = :veterinarioId or prop.veterinario.id = :veterinarioId)
-              and (:nome is null or lower(p.nome) like concat('%', lower(cast(:nome as string)), '%'))
-              and (:documento is null or lower(p.nrDocumento) like concat('%', lower(cast(:documento as string)), '%'))
-              and (:email is null or lower(p.email) like concat('%', lower(cast(:email as string)), '%'))
-            """,
-            countQuery = """
-            select count(distinct p)
-            from Proprietario p
-            left join p.proprietarioPropriedades pp
-            left join pp.propriedade prop
-            where (p.veterinario.id = :veterinarioId or prop.veterinario.id = :veterinarioId)
-              and (:nome is null or lower(p.nome) like concat('%', lower(cast(:nome as string)), '%'))
-              and (:documento is null or lower(p.nrDocumento) like concat('%', lower(cast(:documento as string)), '%'))
-              and (:email is null or lower(p.email) like concat('%', lower(cast(:email as string)), '%'))
-            """)
-    Page<Proprietario> findByFiltros(
-            @Param("veterinarioId") Long veterinarioId,
-            @Param("nome") String nome,
-            @Param("documento") String documento,
-            @Param("email") String email,
-            Pageable pageable
-    );
 
     @Query("""
             select distinct p

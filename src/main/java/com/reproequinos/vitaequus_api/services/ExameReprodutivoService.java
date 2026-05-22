@@ -15,6 +15,7 @@ import com.reproequinos.vitaequus_api.repositories.AnimalRepository;
 import com.reproequinos.vitaequus_api.repositories.ExameReprodutivoRepository;
 import com.reproequinos.vitaequus_api.repositories.InsumoRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
+import com.reproequinos.vitaequus_api.specifications.ExameReprodutivoSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,12 @@ public class ExameReprodutivoService {
         }
 
         return exameRepository
-                .findByFiltros(veterinarioId, animalId, propriedadeId, dataInicio, dataFim, pageable)
+                .findAll(
+                        ExameReprodutivoSpecifications.filtros(
+                                veterinarioId, animalId, propriedadeId, dataInicio, dataFim
+                        ),
+                        pageable
+                )
                 .map(this::toResponse);
     }
 

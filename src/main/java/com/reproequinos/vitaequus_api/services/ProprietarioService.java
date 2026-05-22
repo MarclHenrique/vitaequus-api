@@ -16,6 +16,7 @@ import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioPropriedadeRepository;
 import com.reproequinos.vitaequus_api.repositories.ProprietarioRepository;
+import com.reproequinos.vitaequus_api.specifications.ProprietarioSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,10 @@ public class ProprietarioService {
 
         Long veterinarioId = authService.getVeterinarioLogadoId();
 
-        return proprietarioRepository.findByFiltros(veterinarioId, nome, documento, email, pageable)
+        return proprietarioRepository.findAll(
+                        ProprietarioSpecifications.filtros(veterinarioId, nome, documento, email),
+                        pageable
+                )
                 .map(this::toResponseDTO);
     }
 

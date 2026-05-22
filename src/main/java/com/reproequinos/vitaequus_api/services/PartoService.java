@@ -25,6 +25,7 @@ import com.reproequinos.vitaequus_api.repositories.GestacaoRepository;
 import com.reproequinos.vitaequus_api.repositories.PartoRepository;
 import com.reproequinos.vitaequus_api.repositories.PotroNascidoRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
+import com.reproequinos.vitaequus_api.specifications.PartoSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -75,7 +76,12 @@ public class PartoService {
         validarPeriodo(dataInicio, dataFim);
 
         return partoRepository
-                .findByFiltros(veterinarioId, gestacaoId, doadoraId, propriedadeId, dataInicio, dataFim, pageable)
+                .findAll(
+                        PartoSpecifications.filtros(
+                                veterinarioId, gestacaoId, doadoraId, propriedadeId, dataInicio, dataFim
+                        ),
+                        pageable
+                )
                 .map(this::toResponse);
     }
 

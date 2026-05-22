@@ -20,6 +20,7 @@ import com.reproequinos.vitaequus_api.repositories.AtendimentoClinicoRepository;
 import com.reproequinos.vitaequus_api.repositories.InsumoRepository;
 import com.reproequinos.vitaequus_api.repositories.MedicacaoAplicadaRepository;
 import com.reproequinos.vitaequus_api.repositories.PropriedadeRepository;
+import com.reproequinos.vitaequus_api.specifications.AtendimentoClinicoSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -71,7 +72,12 @@ public class AtendimentoClinicoService {
         }
 
         return atendimentoRepository
-                .findByFiltros(veterinarioId, animalId, tipo, dataInicio, dataFim, pageable)
+                .findAll(
+                        AtendimentoClinicoSpecifications.filtros(
+                                veterinarioId, animalId, tipo, dataInicio, dataFim
+                        ),
+                        pageable
+                )
                 .map(this::toResponse);
     }
 

@@ -11,9 +11,17 @@ import com.reproequinos.vitaequus_api.entities.Enum.StatusAnimal;
 import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.*;
+import com.reproequinos.vitaequus_api.specifications.AtendimentoClinicoSpecifications;
+import com.reproequinos.vitaequus_api.specifications.CheckupGestacionalSpecifications;
+import com.reproequinos.vitaequus_api.specifications.CoberturaSpecifications;
+import com.reproequinos.vitaequus_api.specifications.ExameReprodutivoSpecifications;
+import com.reproequinos.vitaequus_api.specifications.GestacaoSpecifications;
+import com.reproequinos.vitaequus_api.specifications.PartoSpecifications;
+import com.reproequinos.vitaequus_api.specifications.PotroNascidoSpecifications;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -402,7 +410,10 @@ public class AnimalService {
         }
 
         List<AtendimentoClinico> atendimentos = atendimentoClinicoRepository
-                .findTimelineByAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+                .findAll(
+                        AtendimentoClinicoSpecifications.timelineAnimal(id, veterinarioId, dataInicio, dataFim),
+                        Sort.by(Sort.Direction.DESC, "dataHora")
+                );
 
         for (AtendimentoClinico atendimento : atendimentos) {
             lista.add(new TimelineEventoDTO(
@@ -415,7 +426,10 @@ public class AnimalService {
         }
 
         List<ExameReprodutivo> exames = exameReprodutivoRepository
-                .findTimelineByAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+                .findAll(
+                        ExameReprodutivoSpecifications.timelineAnimal(id, veterinarioId, dataInicio, dataFim),
+                        Sort.by(Sort.Direction.DESC, "dataHora")
+                );
 
         for (ExameReprodutivo exame : exames) {
             lista.add(new TimelineEventoDTO(
@@ -428,7 +442,10 @@ public class AnimalService {
         }
 
         List<Cobertura> coberturas = coberturaRepository
-                .findTimelineByAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+                .findAll(
+                        CoberturaSpecifications.timelineAnimal(id, veterinarioId, dataInicio, dataFim),
+                        Sort.by(Sort.Direction.DESC, "dataHora")
+                );
 
         for (Cobertura cobertura : coberturas) {
             lista.add(new TimelineEventoDTO(
@@ -441,13 +458,14 @@ public class AnimalService {
         }
 
         List<Gestacao> gestacoes = gestacaoRepository
-                .findTimelineByDoadoraAnimalAndVeterinario(
-                        id,
-                        veterinarioId,
-                        dataInicio,
-                        dataFim,
-                        dataInicio != null ? dataInicio.toLocalDate() : null,
-                        dataFim != null ? dataFim.toLocalDate() : null
+                .findAll(
+                        GestacaoSpecifications.timelineDoadora(
+                                id,
+                                veterinarioId,
+                                dataInicio != null ? dataInicio.toLocalDate() : null,
+                                dataFim != null ? dataFim.toLocalDate() : null
+                        ),
+                        Sort.by(Sort.Direction.DESC, "dataDiagnosticoInicial")
                 );
 
         for (Gestacao gestacao : gestacoes) {
@@ -461,7 +479,10 @@ public class AnimalService {
         }
 
         List<CheckupGestacional> checkups = checkupGestacionalRepository
-                .findTimelineByDoadoraAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+                .findAll(
+                        CheckupGestacionalSpecifications.timelineDoadora(id, veterinarioId, dataInicio, dataFim),
+                        Sort.by(Sort.Direction.DESC, "dataHora")
+                );
 
         for (CheckupGestacional checkup : checkups) {
             lista.add(new TimelineEventoDTO(
@@ -474,7 +495,10 @@ public class AnimalService {
         }
 
         List<Parto> partos = partoRepository
-                .findTimelineByDoadoraAnimalAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+                .findAll(
+                        PartoSpecifications.timelineDoadora(id, veterinarioId, dataInicio, dataFim),
+                        Sort.by(Sort.Direction.DESC, "dataHora")
+                );
 
         for (Parto parto : partos) {
             lista.add(new TimelineEventoDTO(
@@ -487,7 +511,10 @@ public class AnimalService {
         }
 
         List<PotroNascido> nascimentos = potroNascidoRepository
-                .findTimelineByAnimalCriadoAndVeterinario(id, veterinarioId, dataInicio, dataFim);
+                .findAll(
+                        PotroNascidoSpecifications.timelineAnimalCriado(id, veterinarioId, dataInicio, dataFim),
+                        Sort.by(Sort.Direction.DESC, "parto.dataHora")
+                );
 
         for (PotroNascido potro : nascimentos) {
             lista.add(new TimelineEventoDTO(

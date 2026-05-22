@@ -20,6 +20,8 @@ import com.reproequinos.vitaequus_api.repositories.CheckupGestacionalRepository;
 import com.reproequinos.vitaequus_api.repositories.CoberturaRepository;
 import com.reproequinos.vitaequus_api.repositories.DoadoraRepository;
 import com.reproequinos.vitaequus_api.repositories.GestacaoRepository;
+import com.reproequinos.vitaequus_api.specifications.CheckupGestacionalSpecifications;
+import com.reproequinos.vitaequus_api.specifications.GestacaoSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,7 +79,12 @@ public class GestacaoService {
         }
 
         return gestacaoRepository
-                .findByFiltros(veterinarioId, doadoraId, coberturaId, resultado, status, dataInicio, dataFim, pageable)
+                .findAll(
+                        GestacaoSpecifications.filtros(
+                                veterinarioId, doadoraId, coberturaId, resultado, status, dataInicio, dataFim
+                        ),
+                        pageable
+                )
                 .map(gestacao -> toResponse(gestacao, null));
     }
 
@@ -152,7 +159,12 @@ public class GestacaoService {
         buscarGestacaoDoVeterinario(gestacaoId, veterinarioId);
 
         return checkupRepository
-                .findByFiltros(gestacaoId, veterinarioId, resultado, dataInicio, dataFim, defaultSort(pageable, "dataHora", Sort.Direction.DESC))
+                .findAll(
+                        CheckupGestacionalSpecifications.filtrosDaGestacao(
+                                gestacaoId, veterinarioId, resultado, dataInicio, dataFim
+                        ),
+                        defaultSort(pageable, "dataHora", Sort.Direction.DESC)
+                )
                 .map(this::toCheckupResponse);
     }
 
@@ -168,7 +180,12 @@ public class GestacaoService {
         validarPeriodo(dataInicio, dataFim);
 
         return checkupRepository
-                .findByFiltrosGlobais(veterinarioId, gestacaoId, resultado, dataInicio, dataFim, defaultSort(pageable, "dataHora", Sort.Direction.DESC))
+                .findAll(
+                        CheckupGestacionalSpecifications.filtrosGlobais(
+                                veterinarioId, gestacaoId, resultado, dataInicio, dataFim
+                        ),
+                        defaultSort(pageable, "dataHora", Sort.Direction.DESC)
+                )
                 .map(this::toCheckupResponse);
     }
 

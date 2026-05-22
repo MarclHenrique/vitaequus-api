@@ -5,14 +5,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface PartoRepository extends JpaRepository<Parto, Long> {
+public interface PartoRepository extends JpaRepository<Parto, Long>, JpaSpecificationExecutor<Parto> {
 
     @EntityGraph(attributePaths = {
             "gestacao", "doadora", "doadora.animal", "doadora.animal.proprietario",
@@ -22,44 +23,14 @@ public interface PartoRepository extends JpaRepository<Parto, Long> {
 
     boolean existsByGestacaoIdAndVeterinarioId(Long gestacaoId, Long veterinarioId);
 
+    @Override
     @EntityGraph(attributePaths = {
             "gestacao", "doadora", "doadora.animal",
             "propriedade", "veterinario", "potros", "potros.animalCriado"
     })
-    @Query("""
-            select p
-            from Parto p
-            where p.veterinario.id = :veterinarioId
-              and (:gestacaoId is null or p.gestacao.id = :gestacaoId)
-              and (:doadoraId is null or p.doadora.id = :doadoraId)
-              and (:propriedadeId is null or p.propriedade.id = :propriedadeId)
-              and (:dataInicio is null or p.dataHora >= :dataInicio)
-              and (:dataFim is null or p.dataHora <= :dataFim)
-            """)
-    Page<Parto> findByFiltros(
-            @Param("veterinarioId") Long veterinarioId,
-            @Param("gestacaoId") Long gestacaoId,
-            @Param("doadoraId") Long doadoraId,
-            @Param("propriedadeId") Long propriedadeId,
-            @Param("dataInicio") LocalDateTime dataInicio,
-            @Param("dataFim") LocalDateTime dataFim,
-            Pageable pageable
-    );
+    Page<Parto> findAll(Specification<Parto> spec, Pageable pageable);
 
+    @Override
     @EntityGraph(attributePaths = {"potros"})
-    @Query("""
-            select p
-            from Parto p
-            where p.doadora.animal.id = :animalId
-              and p.veterinario.id = :veterinarioId
-              and (:dataInicio is null or p.dataHora >= :dataInicio)
-              and (:dataFim is null or p.dataHora <= :dataFim)
-            order by p.dataHora desc
-            """)
-    List<Parto> findTimelineByDoadoraAnimalAndVeterinario(
-            @Param("animalId") Long animalId,
-            @Param("veterinarioId") Long veterinarioId,
-            @Param("dataInicio") LocalDateTime dataInicio,
-            @Param("dataFim") LocalDateTime dataFim
-    );
+    List<Parto> findAll(Specification<Parto> spec, Sort sort);
 }

@@ -11,6 +11,7 @@ import com.reproequinos.vitaequus_api.exceptions.BadRequestException;
 import com.reproequinos.vitaequus_api.exceptions.NotFoundException;
 import com.reproequinos.vitaequus_api.repositories.FornecedorRepository;
 import com.reproequinos.vitaequus_api.repositories.InsumoRepository;
+import com.reproequinos.vitaequus_api.specifications.InsumoSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,10 @@ public class InsumoService {
             buscarFornecedorDoVeterinario(fornecedorId, veterinarioId);
         }
 
-        return insumoRepository.findByFiltros(veterinarioId, tipo, fornecedorId, estoqueBaixo, vencendoAte, pageable)
+        return insumoRepository.findAll(
+                        InsumoSpecifications.filtros(veterinarioId, tipo, fornecedorId, estoqueBaixo, vencendoAte),
+                        pageable
+                )
                 .map(this::toResponse);
     }
 
