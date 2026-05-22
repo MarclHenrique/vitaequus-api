@@ -49,20 +49,20 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth
-                            .requestMatchers("/auth/**").permitAll()
-                            .requestMatchers("/uploads/**").permitAll()
                             .requestMatchers(
-                                    "/swagger-ui.html",
+                                    "/",
+                                    "/error",
+                                    "/auth/**",
                                     "/swagger-ui/**",
-                                    "/v3/api-docs",
-                                    "/v3/api-docs/**"
-                            ).permitAll()
-                            .requestMatchers("/error", "/error/**").permitAll();
+                                    "/swagger-ui.html",
+                                    "/v3/api-docs/**",
+                                    "/v3/api-docs.yaml",
+                                    "/webjars/**"
+                            ).permitAll();
 
                     if (environment.acceptsProfiles(Profiles.of("dev"))) {
                         auth.requestMatchers(
                                 "/h2-console/**",
-                                "/webjars/**",
                                 "/openapi.yaml/**"
                         ).permitAll();
                     }

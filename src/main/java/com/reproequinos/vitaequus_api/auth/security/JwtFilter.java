@@ -27,6 +27,18 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+
+        return "/".equals(path)
+                || isPathOrChild(path, "/auth")
+                || isPathOrChild(path, "/swagger-ui")
+                || isPathOrChild(path, "/v3/api-docs")
+                || isPathOrChild(path, "/webjars")
+                || isPathOrChild(path, "/error");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -73,5 +85,9 @@ public class JwtFilter extends OncePerRequestFilter {
         response.getWriter().write("""
                 {"code":"UNAUTHORIZED","message":"Token valido, mas o usuario nao existe mais"}
                 """);
+    }
+
+    private boolean isPathOrChild(String path, String route) {
+        return route.equals(path) || path.startsWith(route + "/");
     }
 }
