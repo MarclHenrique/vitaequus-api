@@ -31,9 +31,9 @@ public interface ProprietarioRepository extends JpaRepository<Proprietario, Long
             left join p.proprietarioPropriedades pp
             left join pp.propriedade prop
             where (p.veterinario.id = :veterinarioId or prop.veterinario.id = :veterinarioId)
-              and (:nome is null or lower(p.nome) like lower(concat('%', :nome, '%')))
-              and (:documento is null or lower(p.nrDocumento) like lower(concat('%', :documento, '%')))
-              and (:email is null or lower(p.email) like lower(concat('%', :email, '%')))
+              and (:nome is null or lower(p.nome) like concat('%', lower(cast(:nome as string)), '%'))
+              and (:documento is null or lower(p.nrDocumento) like concat('%', lower(cast(:documento as string)), '%'))
+              and (:email is null or lower(p.email) like concat('%', lower(cast(:email as string)), '%'))
             """,
             countQuery = """
             select count(distinct p)
@@ -41,9 +41,9 @@ public interface ProprietarioRepository extends JpaRepository<Proprietario, Long
             left join p.proprietarioPropriedades pp
             left join pp.propriedade prop
             where (p.veterinario.id = :veterinarioId or prop.veterinario.id = :veterinarioId)
-              and (:nome is null or lower(p.nome) like lower(concat('%', :nome, '%')))
-              and (:documento is null or lower(p.nrDocumento) like lower(concat('%', :documento, '%')))
-              and (:email is null or lower(p.email) like lower(concat('%', :email, '%')))
+              and (:nome is null or lower(p.nome) like concat('%', lower(cast(:nome as string)), '%'))
+              and (:documento is null or lower(p.nrDocumento) like concat('%', lower(cast(:documento as string)), '%'))
+              and (:email is null or lower(p.email) like concat('%', lower(cast(:email as string)), '%'))
             """)
     Page<Proprietario> findByFiltros(
             @Param("veterinarioId") Long veterinarioId,

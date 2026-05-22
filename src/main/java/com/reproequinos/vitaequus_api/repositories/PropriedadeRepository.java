@@ -18,9 +18,9 @@ public interface PropriedadeRepository extends JpaRepository<Propriedade, Long> 
             select p
             from Propriedade p
             where p.veterinario.id = :veterinarioId
-              and (:nome is null or lower(p.nome) like lower(concat('%', :nome, '%')))
-              and (:cidade is null or lower(p.cidade) like lower(concat('%', :cidade, '%')))
-              and (:estado is null or lower(p.estado) = lower(:estado))
+              and (:nome is null or lower(p.nome) like concat('%', lower(cast(:nome as string)), '%'))
+              and (:cidade is null or lower(p.cidade) like concat('%', lower(cast(:cidade as string)), '%'))
+              and (:estado is null or lower(p.estado) = lower(cast(:estado as string)))
               and (:tipoPropriedade is null or p.tipoPropriedade = :tipoPropriedade)
               and (:ativo is null or p.ativo = :ativo)
             """)

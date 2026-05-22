@@ -40,8 +40,8 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
             left join c.propriedades cp
             left join cp.propriedade p
             where (c.veterinario.id = :veterinarioId or p.veterinario.id = :veterinarioId)
-              and (:nome is null or lower(c.nome) like lower(concat('%', :nome, '%')))
-              and (:telefone is null or lower(c.telefone) like lower(concat('%', :telefone, '%')))
+              and (:nome is null or lower(c.nome) like concat('%', lower(cast(:nome as string)), '%'))
+              and (:telefone is null or lower(c.telefone) like concat('%', lower(cast(:telefone as string)), '%'))
               and (
                     :ativo is null
                     or (:ativo = true and (c.veterinario.id = :veterinarioId or cp.status = 0))
@@ -54,8 +54,8 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
             left join c.propriedades cp
             left join cp.propriedade p
             where (c.veterinario.id = :veterinarioId or p.veterinario.id = :veterinarioId)
-              and (:nome is null or lower(c.nome) like lower(concat('%', :nome, '%')))
-              and (:telefone is null or lower(c.telefone) like lower(concat('%', :telefone, '%')))
+              and (:nome is null or lower(c.nome) like concat('%', lower(cast(:nome as string)), '%'))
+              and (:telefone is null or lower(c.telefone) like concat('%', lower(cast(:telefone as string)), '%'))
               and (
                     :ativo is null
                     or (:ativo = true and (c.veterinario.id = :veterinarioId or cp.status = 0))

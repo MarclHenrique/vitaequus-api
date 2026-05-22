@@ -21,7 +21,7 @@ public interface RacaRepository extends JpaRepository<Raca, Long> {
     @Query("""
             select r
             from Raca r
-            where (:nome is null or lower(r.nome) like lower(concat('%', :nome, '%')))
+            where (:nome is null or lower(r.nome) like concat('%', lower(cast(:nome as string)), '%'))
               and (:status is null or r.status = :status)
             """)
     Page<Raca> findByFiltros(

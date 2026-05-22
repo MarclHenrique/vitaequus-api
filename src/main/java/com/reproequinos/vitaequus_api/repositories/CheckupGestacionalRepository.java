@@ -34,7 +34,7 @@ public interface CheckupGestacionalRepository extends JpaRepository<CheckupGesta
             from CheckupGestacional c
             where c.gestacao.id = :gestacaoId
               and c.gestacao.cobertura.veterinario.id = :veterinarioId
-              and (:resultado is null or lower(c.resultado) like lower(concat('%', :resultado, '%')))
+              and (:resultado is null or lower(c.resultado) like concat('%', lower(cast(:resultado as string)), '%'))
               and (:dataInicio is null or c.dataHora >= :dataInicio)
               and (:dataFim is null or c.dataHora <= :dataFim)
             """)
@@ -57,7 +57,7 @@ public interface CheckupGestacionalRepository extends JpaRepository<CheckupGesta
             from CheckupGestacional c
             where (c.gestacao.cobertura.veterinario.id = :veterinarioId or c.veterinario.id = :veterinarioId)
               and (:gestacaoId is null or c.gestacao.id = :gestacaoId)
-              and (:resultado is null or lower(c.resultado) like lower(concat('%', :resultado, '%')))
+              and (:resultado is null or lower(c.resultado) like concat('%', lower(cast(:resultado as string)), '%'))
               and (:dataInicio is null or c.dataHora >= :dataInicio)
               and (:dataFim is null or c.dataHora <= :dataFim)
             """)

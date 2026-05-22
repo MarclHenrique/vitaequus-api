@@ -18,7 +18,7 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             select f
             from Fornecedor f
             where f.veterinario.id = :veterinarioId
-              and (:nome is null or lower(f.nome) like lower(concat('%', :nome, '%')))
+              and (:nome is null or lower(f.nome) like concat('%', lower(cast(:nome as string)), '%'))
             """)
     Page<Fornecedor> findByFiltros(
             @Param("veterinarioId") Long veterinarioId,
