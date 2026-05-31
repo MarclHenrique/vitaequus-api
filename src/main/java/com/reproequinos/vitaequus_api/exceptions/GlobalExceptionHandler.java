@@ -3,12 +3,17 @@ package com.reproequinos.vitaequus_api.exceptions;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.exc.InvalidFormatException;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestControllerAdvice
@@ -44,6 +49,44 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of("VALIDATION_ERROR", "Dados inválidos", fieldErrors));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        Throwable cause = ex.getMostSpecificCause();
+
+        if (cause instanceof InvalidFormatException invalidFormatException
+                && invalidFormatException.getTargetType().isEnum()) {
+            return invalidEnumResponse(
+                    extractFieldName(invalidFormatException),
+                    invalidFormatException.getTargetType()
+            );
+        }
+
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("BAD_REQUEST", "Corpo da requisição inválido"));
+    }
+
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<ApiError> handleInvalidFormat(InvalidFormatException ex) {
+        if (ex.getTargetType().isEnum()) {
+            return invalidEnumResponse(extractFieldName(ex), ex.getTargetType());
+        }
+
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("BAD_REQUEST", "Formato de campo inválido"));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        Class<?> requiredType = ex.getRequiredType();
+
+        if (requiredType != null && requiredType.isEnum()) {
+            return invalidEnumResponse(ex.getName(), requiredType);
+        }
+
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("BAD_REQUEST", "Parâmetro inválido: " + ex.getName()));
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -69,5 +112,27 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleUnexpected(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.of("INTERNAL_ERROR", "Erro interno no servidor"));
+    }
+
+    private ResponseEntity<ApiError> invalidEnumResponse(String fieldName, Class<?> enumType) {
+        String acceptedValues = Arrays.stream(enumType.getEnumConstants())
+                .map(Object::toString)
+                .reduce((first, second) -> first + ", " + second)
+                .orElse("");
+        String message = "Valor inválido para " + fieldName + ". Valores aceitos: " + acceptedValues;
+
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("INVALID_ENUM", message));
+    }
+
+    private String extractFieldName(InvalidFormatException ex) {
+        List<JacksonException.Reference> path = ex.getPath();
+
+        if (path == null || path.isEmpty()) {
+            return "campo";
+        }
+
+        String fieldName = path.get(path.size() - 1).getPropertyName();
+        return fieldName != null ? fieldName : "campo";
     }
 }

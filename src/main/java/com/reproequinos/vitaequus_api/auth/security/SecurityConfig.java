@@ -51,6 +51,7 @@ public class SecurityConfig {
                     auth
                             .requestMatchers(
                                     "/",
+                                    "/health",
                                     "/error",
                                     "/auth/**",
                                     "/swagger-ui/**",
